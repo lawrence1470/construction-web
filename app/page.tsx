@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { addDays, addWeeks, addMonths } from 'date-fns';
 import GanttContainer from '@/components/gantt/GanttContainer';
 import { GanttTask, GanttGroup } from '@/components/gantt/types/gantt.types';
+import LayoutWrapper from '@/components/layout/LayoutWrapper';
 
 export default function Home() {
   // Sample construction project data
@@ -154,54 +155,56 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-[1600px] mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Construction Project Timeline
-          </h1>
-          <p className="text-gray-600">
-            Track and manage your construction project schedule with interactive Gantt charts
-          </p>
-        </div>
+    <LayoutWrapper>
+      <div className="p-8">
+        <div className="max-w-[1600px] mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Construction Project Timeline
+            </h1>
+            <p className="text-gray-600">
+              Track and manage your construction project schedule with interactive Gantt charts
+            </p>
+          </div>
 
-        {/* Gantt Chart */}
-        <div className="bg-white rounded-lg shadow-lg" style={{ height: '600px' }}>
-          <GanttContainer
-            groups={constructionGroups}
-            tasks={constructionTasks}
-            currentView="month"
-            onTaskClick={handleTaskClick}
-            onTaskUpdate={handleTaskUpdate}
-            showWeekends={true}
-            showToday={true}
-          />
-        </div>
+          {/* Gantt Chart */}
+          <div className="bg-white rounded-lg shadow-lg" style={{ height: '600px' }}>
+            <GanttContainer
+              groups={constructionGroups}
+              tasks={constructionTasks}
+              currentView="month"
+              onTaskClick={handleTaskClick}
+              onTaskUpdate={handleTaskUpdate}
+              showWeekends={true}
+              showToday={true}
+            />
+          </div>
 
-        {/* Legend */}
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-green-500"></div>
-              <span className="text-gray-600">Completed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-blue-500"></div>
-              <span className="text-gray-600">In Progress</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gray-500"></div>
-              <span className="text-gray-600">Not Started</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-red-500"></div>
-              <span className="text-gray-600">Critical/Overdue</span>
+          {/* Legend */}
+          <div className="mt-6 bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-500"></div>
+                <span className="text-gray-600">Completed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-blue-500"></div>
+                <span className="text-gray-600">In Progress</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-gray-500"></div>
+                <span className="text-gray-600">Not Started</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-red-500"></div>
+                <span className="text-gray-600">Critical/Overdue</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </LayoutWrapper>
   );
 }
