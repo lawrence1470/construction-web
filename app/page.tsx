@@ -1,103 +1,207 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { addDays, addWeeks, addMonths } from 'date-fns';
+import GanttContainer from '@/components/gantt/GanttContainer';
+import { GanttTask, GanttGroup } from '@/components/gantt/types/gantt.types';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // Sample construction project data
+  const today = new Date();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const constructionTasks: GanttTask[] = [
+    // Foundation Phase
+    {
+      id: '1',
+      name: 'Site Preparation',
+      startDate: today,
+      endDate: addDays(today, 7),
+      progress: 100,
+      assignee: 'Site Crew A',
+      color: '#10b981',
+    },
+    {
+      id: '2',
+      name: 'Excavation',
+      startDate: addDays(today, 3),
+      endDate: addDays(today, 10),
+      progress: 85,
+      assignee: 'Excavation Team',
+      color: '#3b82f6',
+    },
+    {
+      id: '3',
+      name: 'Foundation Pour',
+      startDate: addDays(today, 11),
+      endDate: addDays(today, 14),
+      progress: 0,
+      assignee: 'Concrete Team',
+      dependencies: ['2'],
+    },
+    // Structural Phase
+    {
+      id: '4',
+      name: 'Steel Framework',
+      startDate: addDays(today, 15),
+      endDate: addDays(today, 28),
+      progress: 0,
+      assignee: 'Steel Workers',
+      dependencies: ['3'],
+    },
+    {
+      id: '5',
+      name: 'Concrete Floors',
+      startDate: addDays(today, 20),
+      endDate: addWeeks(today, 4),
+      progress: 0,
+      assignee: 'Concrete Team',
+      dependencies: ['4'],
+    },
+    // MEP Phase
+    {
+      id: '6',
+      name: 'Electrical Rough-In',
+      startDate: addWeeks(today, 4),
+      endDate: addWeeks(today, 6),
+      progress: 0,
+      assignee: 'Electrical Team',
+      color: '#eab308',
+    },
+    {
+      id: '7',
+      name: 'Plumbing Installation',
+      startDate: addWeeks(today, 4),
+      endDate: addWeeks(today, 6),
+      progress: 0,
+      assignee: 'Plumbing Team',
+      color: '#06b6d4',
+    },
+    {
+      id: '8',
+      name: 'HVAC Installation',
+      startDate: addWeeks(today, 5),
+      endDate: addWeeks(today, 7),
+      progress: 0,
+      assignee: 'HVAC Team',
+      color: '#8b5cf6',
+    },
+    // Finishing Phase
+    {
+      id: '9',
+      name: 'Insulation & Drywall',
+      startDate: addWeeks(today, 7),
+      endDate: addWeeks(today, 9),
+      progress: 0,
+      assignee: 'Drywall Team',
+    },
+    {
+      id: '10',
+      name: 'Flooring',
+      startDate: addWeeks(today, 9),
+      endDate: addWeeks(today, 10),
+      progress: 0,
+      assignee: 'Flooring Team',
+    },
+    {
+      id: '11',
+      name: 'Painting',
+      startDate: addWeeks(today, 9),
+      endDate: addWeeks(today, 11),
+      progress: 0,
+      assignee: 'Painting Team',
+    },
+    {
+      id: '12',
+      name: 'Final Inspections',
+      startDate: addWeeks(today, 11),
+      endDate: addWeeks(today, 12),
+      progress: 0,
+      assignee: 'Inspector',
+      color: '#ef4444',
+    },
+  ];
+
+  const constructionGroups: GanttGroup[] = [
+    {
+      id: 'foundation',
+      name: 'Foundation & Site Work',
+      tasks: constructionTasks.slice(0, 3),
+    },
+    {
+      id: 'structure',
+      name: 'Structural Work',
+      tasks: constructionTasks.slice(3, 5),
+    },
+    {
+      id: 'mep',
+      name: 'MEP (Mechanical, Electrical, Plumbing)',
+      tasks: constructionTasks.slice(5, 8),
+    },
+    {
+      id: 'finishing',
+      name: 'Finishing & Inspection',
+      tasks: constructionTasks.slice(8, 12),
+    },
+  ];
+
+  const handleTaskClick = (task: GanttTask) => {
+    console.log('Task clicked:', task);
+    alert(`Task: ${task.name}\nProgress: ${task.progress || 0}%\nAssignee: ${task.assignee || 'Unassigned'}`);
+  };
+
+  const handleTaskUpdate = (task: GanttTask) => {
+    console.log('Task updated:', task);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-[1600px] mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Construction Project Timeline
+          </h1>
+          <p className="text-gray-600">
+            Track and manage your construction project schedule with interactive Gantt charts
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        {/* Gantt Chart */}
+        <div className="bg-white rounded-lg shadow-lg" style={{ height: '600px' }}>
+          <GanttContainer
+            groups={constructionGroups}
+            tasks={constructionTasks}
+            currentView="month"
+            onTaskClick={handleTaskClick}
+            onTaskUpdate={handleTaskUpdate}
+            showWeekends={true}
+            showToday={true}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+
+        {/* Legend */}
+        <div className="mt-6 bg-white rounded-lg shadow p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-green-500"></div>
+              <span className="text-gray-600">Completed</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-blue-500"></div>
+              <span className="text-gray-600">In Progress</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-gray-500"></div>
+              <span className="text-gray-600">Not Started</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-red-500"></div>
+              <span className="text-gray-600">Critical/Overdue</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
