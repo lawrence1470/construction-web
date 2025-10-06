@@ -1,16 +1,19 @@
 'use client';
 
-import React from 'react';
-import { format, isSameMonth } from 'date-fns';
+import React, { useRef, useEffect } from 'react';
+import { format, startOfDay, differenceInDays } from 'date-fns';
 import { ViewProps } from '../types/gantt.types';
 import {
-  getMonthHeaders,
-  calculateTaskPosition,
+  getMonthGroupedHeaders,
   isTaskInView,
   getTaskColor,
   calculateProgress,
-  getWeeksInMonth,
+  type MonthGroup,
 } from '../utils/dateHelpers';
+import TaskNameColumn from '../components/TaskNameColumn';
+
+const DAY_WIDTH = 40; // Fixed width for perfect alignment
+const TASK_NAME_WIDTH = 256; // 64 * 4 = 256px
 
 const MonthView: React.FC<ViewProps> = ({
   tasks,
@@ -23,13 +26,16 @@ const MonthView: React.FC<ViewProps> = ({
   showToday,
   readOnly,
 }) => {
-  const headers = getMonthHeaders(startDate, endDate);
-  const weeks = getWeeksInMonth(startDate);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Filter headers if not showing weekends
-  const filteredHeaders = showWeekends
-    ? headers
-    : headers.filter(h => !h.isWeekend);
+  // Get month-grouped headers for multi-month display
+  const monthGroups = getMonthGroupedHeaders(startDate, endDate);
+
+  // Flatten all days and filter weekends if needed
+  const allDays = monthGroups.flatMap(group => group.days);
+  const filteredDays = showWeekends
+    ? allDays
+    : allDays.filter(d => !d.isWeekend);
 
   // Get all tasks (from groups or direct tasks)
   const allTasks = groups && groups.length > 0
@@ -41,83 +47,152 @@ const MonthView: React.FC<ViewProps> = ({
     isTaskInView(task.startDate, task.endDate, startDate, endDate)
   );
 
+  // Auto-scroll to today on mount
+  useEffect(() => {
+    if (scrollContainerRef.current && showToday) {
+      const todayIndex = filteredDays.findIndex(d => d.isToday);
+      if (todayIndex !== -1) {
+        const scrollPosition = todayIndex * DAY_WIDTH - TASK_NAME_WIDTH;
+        scrollContainerRef.current.scrollLeft = Math.max(0, scrollPosition);
+      }
+    }
+  }, []);
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Month and Week Headers */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        {/* Month Header */}
-        <div className="flex">
-          <div className="w-64 shrink-0 p-3 border-r border-gray-200 bg-gray-50">
+    <div className="flex h-full overflow-hidden">
+      {/* Fixed Left Column for Task Names */}
+      <div
+        className="flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto overflow-x-hidden z-30"
+        style={{ width: `${TASK_NAME_WIDTH}px` }}
+      >
+        {/* Task Header */}
+        <div className="sticky top-0 z-20 bg-gray-50 border-b border-gray-200">
+          <div className="p-3 h-[89px] flex flex-col justify-end">
             <div className="font-semibold text-sm text-gray-700">Tasks</div>
           </div>
-          <div className="flex-1 p-2 text-center bg-gray-50">
-            <div className="font-semibold text-lg text-gray-800">
-              {format(startDate, 'MMMM yyyy')}
+        </div>
+
+        {/* Task Names */}
+        {groups && groups.length > 0 ? (
+          groups.map(group => (
+            <div key={group.id}>
+              {/* Group Header */}
+              <div className="p-3 bg-gray-50 border-b border-gray-200 h-10 flex items-center">
+                <div className="font-semibold text-sm text-gray-700">
+                  {group.name}
+                </div>
+              </div>
+              {/* Group Tasks */}
+              {group.tasks
+                .filter(task => isTaskInView(task.startDate, task.endDate, startDate, endDate))
+                .map(task => {
+                  const progress = calculateProgress(task.startDate, task.endDate, task.progress);
+                  return (
+                    <div key={task.id} className="h-14 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                      <TaskNameColumn
+                        task={task}
+                        progress={progress}
+                        width={TASK_NAME_WIDTH}
+                      />
+                    </div>
+                  );
+                })}
+            </div>
+          ))
+        ) : (
+          visibleTasks.map(task => {
+            const progress = calculateProgress(task.startDate, task.endDate, task.progress);
+            return (
+              <div key={task.id} className="h-14 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <TaskNameColumn
+                  task={task}
+                  progress={progress}
+                  width={TASK_NAME_WIDTH}
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Scrollable Timeline Section */}
+      <div className="flex-1 overflow-auto scrollbar-hide" ref={scrollContainerRef}>
+        {/* Headers - Sticky within scroll container */}
+        <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+          {/* Month Headers Row */}
+          <div className="flex">
+            {/* Month Headers */}
+            <div className="flex">
+              {monthGroups.map((monthGroup, monthIndex) => {
+                const visibleDays = showWeekends
+                  ? monthGroup.days
+                  : monthGroup.days.filter(d => !d.isWeekend);
+
+                if (visibleDays.length === 0) return null;
+
+                return (
+                  <div
+                    key={monthIndex}
+                    className="border-r-2 border-gray-300"
+                    style={{ width: `${visibleDays.length * DAY_WIDTH}px` }}
+                  >
+                    <div className="p-2 text-center bg-gray-50 border-b border-gray-200">
+                      <div className="font-semibold text-sm text-gray-800">
+                        {monthGroup.label}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Day Headers Row */}
+          <div className="flex">
+            {/* Day Headers */}
+            <div className="flex">
+              {filteredDays.map((day, index) => (
+                <div
+                  key={index}
+                  className={`shrink-0 p-2 text-center border-r border-gray-200 ${
+                    day.isWeekend ? 'bg-gray-100' : 'bg-white'
+                  } ${day.isToday && showToday ? 'bg-blue-50' : ''}`}
+                  style={{ width: `${DAY_WIDTH}px` }}
+                >
+                  <div className="text-xs font-medium text-gray-500">
+                    {format(day.date, 'EEE')[0]}
+                  </div>
+                  <div
+                    className={`text-xs font-semibold ${
+                      day.isToday && showToday ? 'text-blue-600' : 'text-gray-700'
+                    }`}
+                  >
+                    {day.label}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Day Headers */}
-        <div className="flex">
-          <div className="w-64 shrink-0 border-r border-gray-200" />
-          <div className="flex-1 flex">
-            {filteredHeaders.map((header, index) => {
-              const isInMonth = isSameMonth(header.date, startDate);
-              return (
-                <div
-                  key={index}
-                  className={`flex-1 p-2 text-center border-r border-gray-200 ${
-                    header.isWeekend ? 'bg-gray-100' : 'bg-white'
-                  } ${header.isToday && showToday ? 'bg-blue-50' : ''} ${
-                    !isInMonth ? 'opacity-50' : ''
-                  }`}
-                  style={{ minWidth: '30px' }}
-                >
-                  <div className="text-xs font-medium text-gray-500">
-                    {format(header.date, 'EEE')[0]}
-                  </div>
-                  <div className={`text-xs font-semibold ${
-                    header.isToday && showToday ? 'text-blue-600' : 'text-gray-700'
-                  }`}>
-                    {header.label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Task Rows and Timeline */}
-      <div className="flex-1 overflow-y-auto">
+        {/* Task Rows and Timeline */}
         {groups && groups.length > 0 ? (
           // Render with groups
           groups.map(group => (
             <div key={group.id} className="border-b border-gray-200">
               {/* Group Header */}
               <div className="flex bg-gray-50">
-                <div className="w-64 shrink-0 p-3 border-r border-gray-200">
-                  <div className="font-semibold text-sm text-gray-700">
-                    {group.name}
-                  </div>
-                </div>
-                <div className="flex-1 relative h-10">
-                  {/* Group timeline background */}
-                  <div className="absolute inset-0 flex">
-                    {filteredHeaders.map((header, index) => {
-                      const isInMonth = isSameMonth(header.date, startDate);
-                      return (
-                        <div
-                          key={index}
-                          className={`flex-1 border-r border-gray-200 ${
-                            header.isWeekend ? 'bg-gray-100' : 'bg-gray-50'
-                          } ${header.isToday && showToday ? 'bg-blue-50' : ''} ${
-                            !isInMonth ? 'opacity-50' : ''
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
+                {/* Group Timeline */}
+                <div className="flex h-10 relative z-10">
+                  {filteredDays.map((day, index) => (
+                    <div
+                      key={index}
+                      className={`shrink-0 border-r border-gray-200 ${
+                        day.isWeekend ? 'bg-gray-100' : 'bg-gray-50'
+                      } ${day.isToday && showToday ? 'bg-blue-50' : ''}`}
+                      style={{ width: `${DAY_WIDTH}px` }}
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -135,7 +210,7 @@ const MonthView: React.FC<ViewProps> = ({
         {/* Empty state */}
         {visibleTasks.length === 0 && (
           <div className="flex items-center justify-center h-32 text-gray-500">
-            No tasks in this month
+            No tasks in this period
           </div>
         )}
       </div>
@@ -143,87 +218,89 @@ const MonthView: React.FC<ViewProps> = ({
   );
 
   function renderTaskRow(task: any) {
-    const position = calculateTaskPosition(
-      task.startDate,
-      task.endDate,
-      startDate,
-      endDate,
-      'month'
-    );
-
     const progress = calculateProgress(task.startDate, task.endDate, task.progress);
     const color = getTaskColor(progress, task.endDate, task.color);
 
+    // Calculate position based on fixed-width days
+    const taskStartDay = startOfDay(task.startDate);
+    const taskEndDay = startOfDay(task.endDate);
+    const viewStartDay = startOfDay(startDate);
+
+    // Find which columns the task occupies
+    let startColumn = -1;
+    let endColumn = -1;
+
+    filteredDays.forEach((day, index) => {
+      const dayDate = startOfDay(day.date);
+      if (taskStartDay <= dayDate && startColumn === -1) {
+        startColumn = index;
+      }
+      if (taskEndDay >= dayDate) {
+        endColumn = index;
+      }
+    });
+
+    // If task doesn't overlap with any displayed days, don't render
+    if (startColumn === -1 || endColumn === -1) {
+      return null;
+    }
+
+    const columnSpan = endColumn - startColumn + 1;
+
+    // Calculate fixed-width positioning (perfect pixel alignment)
+    const leftPosition = startColumn * DAY_WIDTH;
+    const barWidth = columnSpan * DAY_WIDTH;
+
     return (
-      <div key={task.id} className="flex hover:bg-gray-50 transition-colors">
-        {/* Task Name */}
-        <div className="w-64 shrink-0 p-3 border-r border-gray-200">
-          <div className="text-sm font-medium text-gray-800 truncate">
-            {task.name}
+      <div key={task.id} className="h-14 hover:bg-gray-50 transition-colors">
+        {/* Task Timeline */}
+        <div
+          className="relative h-14 z-10"
+          style={{
+            width: `${filteredDays.length * DAY_WIDTH}px`,
+            isolation: 'isolate'
+          }}
+        >
+          {/* Timeline background with day grid */}
+          <div className="absolute inset-0 flex z-0">
+            {filteredDays.map((day, index) => (
+              <div
+                key={index}
+                className={`shrink-0 border-r border-gray-200 ${
+                  day.isWeekend ? 'bg-gray-50' : 'bg-white'
+                } ${day.isToday && showToday ? 'bg-blue-50' : ''}`}
+                style={{ width: `${DAY_WIDTH}px` }}
+              />
+            ))}
           </div>
-          {task.assignee && (
-            <div className="text-xs text-gray-500 truncate mt-1">
-              {task.assignee}
-            </div>
-          )}
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-gray-400">
-              {format(task.startDate, 'MMM d')} - {format(task.endDate, 'MMM d')}
-            </span>
-            {progress > 0 && (
-              <span className="text-xs font-medium text-gray-600">
-                {progress}%
-              </span>
+
+          {/* Task bar - perfectly aligned with day columns */}
+          <div
+            className="absolute top-3 h-8 rounded-md shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] flex items-center overflow-hidden z-10"
+            style={{
+              left: `${leftPosition}px`,
+              width: `${barWidth}px`,
+              backgroundColor: color,
+              opacity: 0.9,
+            }}
+            onClick={() => onTaskClick?.(task)}
+            title={`${task.name}\n${format(task.startDate, 'MMM d')} - ${format(task.endDate, 'MMM d')}\nProgress: ${progress}%`}
+          >
+            {/* Progress bar */}
+            {progress > 0 && progress < 100 && (
+              <div
+                className="absolute inset-y-0 left-0 bg-black bg-opacity-20"
+                style={{ width: `${progress}%` }}
+              />
             )}
-          </div>
-        </div>
 
-        {/* Task Bar */}
-        <div className="flex-1 relative h-14">
-          {/* Timeline background */}
-          <div className="absolute inset-0 flex">
-            {filteredHeaders.map((header, index) => {
-              const isInMonth = isSameMonth(header.date, startDate);
-              return (
-                <div
-                  key={index}
-                  className={`flex-1 border-r border-gray-200 ${
-                    header.isWeekend ? 'bg-gray-50' : 'bg-white'
-                  } ${header.isToday && showToday ? 'bg-blue-50' : ''} ${
-                    !isInMonth ? 'bg-gray-50 opacity-30' : ''
-                  }`}
-                />
-              );
-            })}
-          </div>
-
-          {/* Task bar */}
-          {position.isVisible && (
-            <div
-              className="absolute top-3 h-8 rounded-md shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] flex items-center overflow-hidden"
-              style={{
-                left: position.left,
-                width: position.width,
-                backgroundColor: color,
-                opacity: 0.9,
-              }}
-              onClick={() => onTaskClick?.(task)}
-              title={`${task.name}\n${format(task.startDate, 'MMM d')} - ${format(task.endDate, 'MMM d')}\nProgress: ${progress}%`}
-            >
-              {/* Progress bar */}
-              {progress > 0 && progress < 100 && (
-                <div
-                  className="absolute inset-y-0 left-0 bg-black bg-opacity-20"
-                  style={{ width: `${progress}%` }}
-                />
-              )}
-
-              {/* Task name (only show if bar is wide enough) */}
+            {/* Task name (only show if bar is wide enough) */}
+            {barWidth >= 60 && (
               <span className="px-2 text-xs text-white font-medium truncate relative z-10">
                 {task.name}
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );

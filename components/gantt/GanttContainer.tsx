@@ -1,19 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange } from 'lucide-react';
-import { format } from 'date-fns';
+import React, { useState } from 'react';
+import { Calendar, CalendarDays, CalendarRange } from 'lucide-react';
 import { ViewType, GanttContainerProps } from './types/gantt.types';
-import { getViewDateRange, navigateForward, navigateBackward, formatDateRange } from './utils/dateHelpers';
-import WeekView from './views/WeekView';
-import MonthView from './views/MonthView';
-import YearView from './views/YearView';
+import WeekViewContainer from './containers/WeekViewContainer';
+import MonthViewContainer from './containers/MonthViewContainer';
+import YearViewContainer from './containers/YearViewContainer';
 
 const GanttContainer: React.FC<GanttContainerProps> = ({
   tasks = [],
   groups = [],
-  startDate: initialStartDate,
-  endDate: initialEndDate,
   currentView: initialView = 'month',
   onTaskClick,
   onTaskUpdate,
@@ -22,16 +18,7 @@ const GanttContainer: React.FC<GanttContainerProps> = ({
   showToday = true,
   readOnly = false,
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<ViewType>(initialView);
-
-  // Calculate the date range based on the current view
-  const dateRange = useMemo(() => {
-    if (initialStartDate && initialEndDate) {
-      return { start: initialStartDate, end: initialEndDate };
-    }
-    return getViewDateRange(currentDate, currentView);
-  }, [currentDate, currentView, initialStartDate, initialEndDate]);
 
   // Handle view change
   const handleViewChange = (view: ViewType) => {
@@ -39,26 +26,11 @@ const GanttContainer: React.FC<GanttContainerProps> = ({
     onViewChange?.(view);
   };
 
-  // Handle navigation
-  const handleNavigateBack = () => {
-    setCurrentDate(navigateBackward(currentDate, currentView));
-  };
-
-  const handleNavigateForward = () => {
-    setCurrentDate(navigateForward(currentDate, currentView));
-  };
-
-  const handleToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  // Render the appropriate view
+  // Render the appropriate view container
   const renderView = () => {
     const viewProps = {
       tasks,
       groups,
-      startDate: dateRange.start,
-      endDate: dateRange.end,
       onTaskClick,
       onTaskUpdate,
       showWeekends,
@@ -68,99 +40,57 @@ const GanttContainer: React.FC<GanttContainerProps> = ({
 
     switch (currentView) {
       case 'week':
-        return <WeekView {...viewProps} />;
+        return <WeekViewContainer {...viewProps} />;
       case 'month':
-        return <MonthView {...viewProps} />;
+        return <MonthViewContainer {...viewProps} />;
       case 'year':
-        return <YearView {...viewProps} />;
+        return <YearViewContainer {...viewProps} />;
       default:
-        return <MonthView {...viewProps} />;
+        return <MonthViewContainer {...viewProps} />;
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header Controls */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {/* View Selector */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleViewChange('week')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              currentView === 'week'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <CalendarDays className="w-4 h-4" />
-            Week
-          </button>
-          <button
-            onClick={() => handleViewChange('month')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              currentView === 'month'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            Month
-          </button>
-          <button
-            onClick={() => handleViewChange('year')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              currentView === 'year'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <CalendarRange className="w-4 h-4" />
-            Year
-          </button>
-        </div>
-
-        {/* Date Navigation */}
-        <div className="flex items-center gap-3">
-          {/* Current Period Display */}
-          <div className="text-lg font-semibold text-gray-800">
-            {formatDateRange(dateRange.start, dateRange.end, currentView)}
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleNavigateBack}
-              className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-              aria-label="Previous period"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              onClick={handleToday}
-              className="px-3 py-1 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
-            >
-              Today
-            </button>
-            <button
-              onClick={handleNavigateForward}
-              className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-              aria-label="Next period"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Additional Controls */}
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-gray-500">
-            {tasks.length} task{tasks.length !== 1 ? 's' : ''}
-          </div>
-        </div>
+    <div className="flex flex-col h-full">
+      {/* View Selector */}
+      <div className="flex items-center gap-2 p-4 bg-white border-b border-gray-200">
+        <button
+          onClick={() => handleViewChange('week')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            currentView === 'week'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <CalendarDays className="w-4 h-4" />
+          Week
+        </button>
+        <button
+          onClick={() => handleViewChange('month')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            currentView === 'month'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          Month
+        </button>
+        <button
+          onClick={() => handleViewChange('year')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+            currentView === 'year'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <CalendarRange className="w-4 h-4" />
+          Year
+        </button>
       </div>
 
-      {/* Gantt Chart View */}
-      <div className="flex-1 overflow-auto">
+      {/* View Container */}
+      <div className="flex-1">
         {renderView()}
       </div>
     </div>

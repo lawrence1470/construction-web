@@ -87,7 +87,7 @@ export const getWeekHeaders = (startDate: Date, endDate: Date): TimelineHeader[]
   }));
 };
 
-// Generate timeline headers for month view
+// Generate timeline headers for month view with month grouping
 export const getMonthHeaders = (startDate: Date, endDate: Date): TimelineHeader[] => {
   const days = eachDayOfInterval({ start: startDate, end: endDate });
   return days.map(date => ({
@@ -96,6 +96,35 @@ export const getMonthHeaders = (startDate: Date, endDate: Date): TimelineHeader[
     isWeekend: isWeekend(date),
     isToday: isToday(date),
   }));
+};
+
+// Generate month groups with day headers for multi-month view
+export interface MonthGroup {
+  month: Date;
+  label: string;
+  days: TimelineHeader[];
+}
+
+export const getMonthGroupedHeaders = (startDate: Date, endDate: Date): MonthGroup[] => {
+  const months = eachMonthOfInterval({ start: startDate, end: endDate });
+
+  return months.map(month => {
+    const monthStart = month < startDate ? startDate : startOfMonth(month);
+    const monthEnd = endOfMonth(month) > endDate ? endDate : endOfMonth(month);
+
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+    return {
+      month,
+      label: format(month, 'MMMM yyyy'),
+      days: days.map(date => ({
+        label: format(date, 'd'),
+        date,
+        isWeekend: isWeekend(date),
+        isToday: isToday(date),
+      })),
+    };
+  });
 };
 
 // Generate timeline headers for year view

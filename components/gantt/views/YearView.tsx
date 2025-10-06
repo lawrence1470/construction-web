@@ -61,39 +61,31 @@ const YearView: React.FC<ViewProps> = ({
         {/* Quarter Headers */}
         <div className="flex">
           <div className="w-64 shrink-0 border-r border-gray-200" />
-          <div className="flex-1 flex">
-            {quarters.map((quarter, qIndex) => {
-              const quarterMonths = headers.filter(h =>
-                quarter.months.includes(getMonth(h.date))
-              );
-              return quarterMonths.length > 0 ? (
+          <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }}>
+            {headers.map((header, index) => {
+              const monthIndex = getMonth(header.date);
+              const quarterIndex = Math.floor(monthIndex / 3);
+              const isFirstMonthOfQuarter = monthIndex % 3 === 0;
+
+              return (
                 <div
-                  key={qIndex}
-                  className="flex-1 flex flex-col border-r border-gray-200"
+                  key={index}
+                  className={`p-2 text-center border-r border-gray-200 ${
+                    header.isToday && showToday ? 'bg-blue-50' : 'bg-white'
+                  }`}
                 >
-                  <div className="p-1 text-center bg-gray-100 border-b border-gray-200">
-                    <span className="text-xs font-semibold text-gray-600">
-                      {quarter.label}
-                    </span>
-                  </div>
-                  <div className="flex">
-                    {quarterMonths.map((header, index) => (
-                      <div
-                        key={`${qIndex}-${index}`}
-                        className={`flex-1 p-2 text-center border-r border-gray-200 ${
-                          header.isToday && showToday ? 'bg-blue-50' : 'bg-white'
-                        }`}
-                      >
-                        <div className={`text-xs font-semibold ${
-                          header.isToday && showToday ? 'text-blue-600' : 'text-gray-700'
-                        }`}>
-                          {header.label}
-                        </div>
-                      </div>
-                    ))}
+                  {isFirstMonthOfQuarter && (
+                    <div className="text-xs font-semibold text-gray-500 mb-1">
+                      Q{quarterIndex + 1}
+                    </div>
+                  )}
+                  <div className={`text-xs font-semibold ${
+                    header.isToday && showToday ? 'text-blue-600' : 'text-gray-700'
+                  }`}>
+                    {header.label}
                   </div>
                 </div>
-              ) : null;
+              );
             })}
           </div>
         </div>
@@ -117,11 +109,11 @@ const YearView: React.FC<ViewProps> = ({
                 </div>
                 <div className="flex-1 relative h-12">
                   {/* Group timeline background */}
-                  <div className="absolute inset-0 flex">
+                  <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }}>
                     {headers.map((header, index) => (
                       <div
                         key={index}
-                        className={`flex-1 border-r border-gray-200 ${
+                        className={`border-r border-gray-200 ${
                           header.isToday && showToday ? 'bg-blue-50' : 'bg-gray-50'
                         }`}
                       />
@@ -190,11 +182,11 @@ const YearView: React.FC<ViewProps> = ({
         {/* Task Bar */}
         <div className="flex-1 relative h-16">
           {/* Timeline background */}
-          <div className="absolute inset-0 flex">
+          <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${headers.length}, 1fr)` }}>
             {headers.map((header, index) => (
               <div
                 key={index}
-                className={`flex-1 border-r border-gray-200 ${
+                className={`border-r border-gray-200 ${
                   header.isToday && showToday ? 'bg-blue-50' : 'bg-white'
                 }`}
               />

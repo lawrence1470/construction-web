@@ -180,29 +180,6 @@ export default function Home() {
               showToday={true}
             />
           </div>
-
-          {/* Legend */}
-          <div className="mt-6 bg-white rounded-lg shadow p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500"></div>
-                <span className="text-gray-600">Completed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-blue-500"></div>
-                <span className="text-gray-600">In Progress</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gray-500"></div>
-                <span className="text-gray-600">Not Started</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500"></div>
-                <span className="text-gray-600">Critical/Overdue</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </LayoutWrapper>

@@ -50,11 +50,11 @@ const WeekView: React.FC<ViewProps> = ({
           </div>
 
           {/* Date Headers */}
-          <div className="flex-1 flex">
+          <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${filteredHeaders.length}, 1fr)` }}>
             {filteredHeaders.map((header, index) => (
               <div
                 key={index}
-                className={`flex-1 p-3 text-center border-r border-gray-200 ${
+                className={`p-3 text-center border-r border-gray-200 ${
                   header.isWeekend ? 'bg-gray-50' : ''
                 } ${header.isToday && showToday ? 'bg-blue-50' : ''}`}
               >
@@ -87,11 +87,11 @@ const WeekView: React.FC<ViewProps> = ({
                 </div>
                 <div className="flex-1 relative h-10">
                   {/* Group timeline background */}
-                  <div className="absolute inset-0 flex">
+                  <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${filteredHeaders.length}, 1fr)` }}>
                     {filteredHeaders.map((header, index) => (
                       <div
                         key={index}
-                        className={`flex-1 border-r border-gray-200 ${
+                        className={`border-r border-gray-200 ${
                           header.isWeekend ? 'bg-gray-50' : ''
                         } ${header.isToday && showToday ? 'bg-blue-50' : ''}`}
                       />
@@ -150,11 +150,11 @@ const WeekView: React.FC<ViewProps> = ({
         {/* Task Bar */}
         <div className="flex-1 relative h-14">
           {/* Timeline background */}
-          <div className="absolute inset-0 flex">
+          <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${filteredHeaders.length}, 1fr)` }}>
             {filteredHeaders.map((header, index) => (
               <div
                 key={index}
-                className={`flex-1 border-r border-gray-200 ${
+                className={`border-r border-gray-200 ${
                   header.isWeekend ? 'bg-gray-50' : 'bg-white'
                 } ${header.isToday && showToday ? 'bg-blue-50' : ''}`}
               />
