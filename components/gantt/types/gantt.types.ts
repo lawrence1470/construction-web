@@ -1,7 +1,5 @@
 // Type definitions for the Gantt chart components
 
-export type ViewType = 'week' | 'month' | 'year';
-
 export interface GanttTask {
   id: string;
   name: string;
@@ -26,10 +24,8 @@ export interface GanttContainerProps {
   groups?: GanttGroup[];
   startDate?: Date;
   endDate?: Date;
-  currentView?: ViewType;
   onTaskClick?: (task: GanttTask) => void;
   onTaskUpdate?: (task: GanttTask) => void;
-  onViewChange?: (view: ViewType) => void;
   showWeekends?: boolean;
   showToday?: boolean;
   readOnly?: boolean;

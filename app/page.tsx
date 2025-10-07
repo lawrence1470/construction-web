@@ -1,13 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { addDays, addWeeks, addMonths } from 'date-fns';
+import { addDays, addWeeks } from 'date-fns';
 import GanttContainer from '@/components/gantt/GanttContainer';
 import { GanttTask, GanttGroup } from '@/components/gantt/types/gantt.types';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<'week' | 'month'>('month');
 
   // Sample construction project data
   const today = new Date();
@@ -170,38 +168,11 @@ export default function Home() {
             </p>
           </div>
 
-          {/* View Toggle */}
-          <div className="mb-6">
-            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
-              <button
-                onClick={() => setCurrentView('week')}
-                className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                  currentView === 'week'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Week
-              </button>
-              <button
-                onClick={() => setCurrentView('month')}
-                className={`px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                  currentView === 'month'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Month
-              </button>
-            </div>
-          </div>
-
           {/* Gantt Chart */}
           <div className="bg-white rounded-lg shadow-lg" style={{ height: '600px' }}>
             <GanttContainer
               groups={constructionGroups}
               tasks={constructionTasks}
-              currentView={currentView}
               onTaskClick={handleTaskClick}
               onTaskUpdate={handleTaskUpdate}
               showWeekends={true}
