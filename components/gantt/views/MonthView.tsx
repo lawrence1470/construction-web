@@ -11,9 +11,17 @@ import {
   type MonthGroup,
 } from '../utils/dateHelpers';
 import TaskNameColumn from '../components/TaskNameColumn';
+import { GANTT_LAYOUT } from '../constants/layout';
 
-const DAY_WIDTH = 40; // Fixed width for perfect alignment
-const TASK_NAME_WIDTH = 256; // 64 * 4 = 256px
+const {
+  DAY_WIDTH,
+  TASK_NAME_WIDTH,
+  TASK_ROW_HEIGHT,
+  GROUP_HEADER_HEIGHT,
+  HEADER_HEIGHT,
+  MONTH_HEADER_HEIGHT,
+  DAY_HEADER_HEIGHT,
+} = GANTT_LAYOUT;
 
 const MonthView: React.FC<ViewProps> = ({
   tasks,
@@ -67,7 +75,15 @@ const MonthView: React.FC<ViewProps> = ({
       >
         {/* Task Header */}
         <div className="sticky top-0 z-20 bg-gray-50 border-b border-gray-200">
-          <div className="p-3 h-[89px] flex flex-col justify-end">
+          <div
+            className="flex flex-col justify-end"
+            style={{
+              height: `${HEADER_HEIGHT}px`,
+              paddingLeft: '12px',
+              paddingRight: '12px',
+              paddingBottom: '12px'
+            }}
+          >
             <div className="font-semibold text-sm text-gray-700">Tasks</div>
           </div>
         </div>
@@ -77,7 +93,14 @@ const MonthView: React.FC<ViewProps> = ({
           groups.map(group => (
             <div key={group.id}>
               {/* Group Header */}
-              <div className="p-3 bg-gray-50 border-b border-gray-200 h-10 flex items-center">
+              <div
+                className="bg-gray-50 border-b border-gray-200 flex items-center"
+                style={{
+                  height: `${GROUP_HEADER_HEIGHT}px`,
+                  paddingLeft: '12px',
+                  paddingRight: '12px'
+                }}
+              >
                 <div className="font-semibold text-sm text-gray-700">
                   {group.name}
                 </div>
@@ -88,7 +111,11 @@ const MonthView: React.FC<ViewProps> = ({
                 .map(task => {
                   const progress = calculateProgress(task.startDate, task.endDate, task.progress);
                   return (
-                    <div key={task.id} className="h-14 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <div
+                      key={task.id}
+                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                      style={{ height: `${TASK_ROW_HEIGHT}px` }}
+                    >
                       <TaskNameColumn
                         task={task}
                         progress={progress}
@@ -103,7 +130,11 @@ const MonthView: React.FC<ViewProps> = ({
           visibleTasks.map(task => {
             const progress = calculateProgress(task.startDate, task.endDate, task.progress);
             return (
-              <div key={task.id} className="h-14 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+              <div
+                key={task.id}
+                className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                style={{ height: `${TASK_ROW_HEIGHT}px` }}
+              >
                 <TaskNameColumn
                   task={task}
                   progress={progress}
@@ -136,7 +167,13 @@ const MonthView: React.FC<ViewProps> = ({
                     className="border-r-2 border-gray-300"
                     style={{ width: `${visibleDays.length * DAY_WIDTH}px` }}
                   >
-                    <div className="p-2 text-center bg-gray-50 border-b border-gray-200">
+                    <div
+                      className="text-center bg-gray-50 border-b border-gray-200 flex items-center justify-center"
+                      style={{
+                        height: `${MONTH_HEADER_HEIGHT}px`,
+                        padding: '8px'
+                      }}
+                    >
                       <div className="font-semibold text-sm text-gray-800">
                         {monthGroup.label}
                       </div>
@@ -154,10 +191,14 @@ const MonthView: React.FC<ViewProps> = ({
               {filteredDays.map((day, index) => (
                 <div
                   key={index}
-                  className={`shrink-0 p-2 text-center border-r border-gray-200 ${
+                  className={`shrink-0 text-center border-r border-gray-200 flex flex-col items-center justify-center ${
                     day.isWeekend ? 'bg-gray-100' : 'bg-white'
                   } ${day.isToday && showToday ? 'bg-blue-50' : ''}`}
-                  style={{ width: `${DAY_WIDTH}px` }}
+                  style={{
+                    width: `${DAY_WIDTH}px`,
+                    height: `${DAY_HEADER_HEIGHT}px`,
+                    padding: '8px'
+                  }}
                 >
                   <div className="text-xs font-medium text-gray-500">
                     {format(day.date, 'EEE')[0]}
@@ -183,7 +224,7 @@ const MonthView: React.FC<ViewProps> = ({
               {/* Group Header */}
               <div className="flex bg-gray-50">
                 {/* Group Timeline */}
-                <div className="flex h-10 relative z-10">
+                <div className="flex relative z-10" style={{ height: `${GROUP_HEADER_HEIGHT}px` }}>
                   {filteredDays.map((day, index) => (
                     <div
                       key={index}
@@ -252,11 +293,12 @@ const MonthView: React.FC<ViewProps> = ({
     const barWidth = columnSpan * DAY_WIDTH;
 
     return (
-      <div key={task.id} className="h-14 hover:bg-gray-50 transition-colors">
+      <div key={task.id} className="hover:bg-gray-50 transition-colors" style={{ height: `${TASK_ROW_HEIGHT}px` }}>
         {/* Task Timeline */}
         <div
-          className="relative h-14 z-10"
+          className="relative z-10"
           style={{
+            height: `${TASK_ROW_HEIGHT}px`,
             width: `${filteredDays.length * DAY_WIDTH}px`,
             isolation: 'isolate'
           }}

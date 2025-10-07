@@ -8,34 +8,40 @@ interface TaskNameColumnProps {
   task: GanttTask;
   progress: number;
   width: number;
+  level?: number;
 }
 
 const TaskNameColumn: React.FC<TaskNameColumnProps> = ({
   task,
   progress,
   width,
+  level = 0,
 }) => {
   return (
     <div
-      className="p-3 bg-white"
+      className="h-full bg-white flex flex-col justify-center overflow-hidden"
       style={{
-        width: `${width}px`
+        width: `${width}px`,
+        paddingLeft: `${12 + level * 24}px`,
+        paddingRight: '12px',
+        paddingTop: '0',
+        paddingBottom: '0'
       }}
     >
-      <div className="text-sm font-medium text-gray-800 truncate">
+      <div className="text-sm font-semibold text-gray-800 truncate leading-snug mb-0.5">
         {task.name}
       </div>
       {task.assignee && (
-        <div className="text-xs text-gray-500 truncate mt-1">
+        <div className="text-[11px] text-gray-500 truncate leading-none mb-0.5">
           {task.assignee}
         </div>
       )}
-      <div className="flex items-center gap-2 mt-1">
-        <span className="text-xs text-gray-400">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-[11px] text-gray-400 truncate">
           {format(task.startDate, 'MMM d')} - {format(task.endDate, 'MMM d')}
         </span>
         {progress > 0 && (
-          <span className="text-xs font-medium text-gray-600">
+          <span className="text-[11px] font-medium text-gray-600 flex-shrink-0">
             {progress}%
           </span>
         )}
