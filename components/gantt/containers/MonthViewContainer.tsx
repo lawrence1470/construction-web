@@ -13,7 +13,6 @@ interface MonthViewContainerProps {
   showWeekends?: boolean;
   showToday?: boolean;
   readOnly?: boolean;
-  monthsToShow?: number; // Number of months to display in the scrollable view
 }
 
 const MonthViewContainer: React.FC<MonthViewContainerProps> = ({
@@ -24,7 +23,6 @@ const MonthViewContainer: React.FC<MonthViewContainerProps> = ({
   showWeekends = true,
   showToday = true,
   readOnly = false,
-  monthsToShow = 3, // Default to showing 3 months
 }) => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 

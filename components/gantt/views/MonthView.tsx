@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { format, startOfDay, differenceInDays } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { ViewProps } from '../types/gantt.types';
 import {
   getMonthGroupedHeaders,
   isTaskInView,
   getTaskColor,
   calculateProgress,
-  type MonthGroup,
 } from '../utils/dateHelpers';
 import TaskNameColumn from '../components/TaskNameColumn';
 import { GANTT_LAYOUT } from '../constants/layout';
@@ -29,10 +28,8 @@ const MonthView: React.FC<ViewProps> = ({
   startDate,
   endDate,
   onTaskClick,
-  onTaskUpdate,
   showWeekends,
   showToday,
-  readOnly,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +61,7 @@ const MonthView: React.FC<ViewProps> = ({
         scrollContainerRef.current.scrollLeft = Math.max(0, scrollPosition);
       }
     }
-  }, []);
+  }, [filteredDays, showToday]);
 
   const taskListRef = useRef<HTMLDivElement>(null);
 
@@ -276,14 +273,13 @@ const MonthView: React.FC<ViewProps> = ({
     </div>
   );
 
-  function renderTaskRow(task: any) {
+  function renderTaskRow(task: GanttTask) {
     const progress = calculateProgress(task.startDate, task.endDate, task.progress);
     const color = getTaskColor(progress, task.endDate, task.color);
 
     // Calculate position based on fixed-width days
     const taskStartDay = startOfDay(task.startDate);
     const taskEndDay = startOfDay(task.endDate);
-    const viewStartDay = startOfDay(startDate);
 
     // Find which columns the task occupies
     let startColumn = -1;
