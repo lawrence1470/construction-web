@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { format, startOfDay } from 'date-fns';
-import { ViewProps } from '../types/gantt.types';
+import { ViewProps, GanttTask } from '../types/gantt.types';
 import {
   getMonthGroupedHeaders,
   isTaskInView,
