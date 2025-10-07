@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { Calendar } from 'lucide-react';
 import { GanttTask, GanttGroup } from '../types/gantt.types';
-import { formatDateRange } from '../utils/dateHelpers';
 import MonthView from '../views/MonthView';
 
 interface MonthViewContainerProps {
@@ -28,37 +26,26 @@ const MonthViewContainer: React.FC<MonthViewContainerProps> = ({
   readOnly = false,
   monthsToShow = 3, // Default to showing 3 months
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Calculate date range to show multiple months
+  // Calculate date range to show entire year
   const dateRange = useMemo(() => {
-    const start = startOfMonth(subMonths(currentDate, Math.floor(monthsToShow / 2)));
-    const end = endOfMonth(addMonths(currentDate, Math.ceil(monthsToShow / 2) - 1));
+    const start = new Date(currentYear, 0, 1); // January 1st
+    const end = new Date(currentYear, 11, 31); // December 31st
     return { start, end };
-  }, [currentDate, monthsToShow]);
+  }, [currentYear]);
 
-  const handleNavigateBack = () => {
-    setCurrentDate(prev => subMonths(prev, 1));
-  };
-
-  const handleNavigateForward = () => {
-    setCurrentDate(prev => addMonths(prev, 1));
+  const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentYear(parseInt(event.target.value));
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    setCurrentYear(new Date().getFullYear());
   };
 
-  // Format date range display
-  const dateRangeText = useMemo(() => {
-    if (format(dateRange.start, 'yyyy') === format(dateRange.end, 'yyyy')) {
-      if (format(dateRange.start, 'MM') === format(dateRange.end, 'MM')) {
-        return format(dateRange.start, 'MMMM yyyy');
-      }
-      return `${format(dateRange.start, 'MMM')} - ${format(dateRange.end, 'MMM yyyy')}`;
-    }
-    return `${format(dateRange.start, 'MMM yyyy')} - ${format(dateRange.end, 'MMM yyyy')}`;
-  }, [dateRange]);
+  // Generate year options (current year +/- 5 years)
+  const currentYearNow = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 11 }, (_, i) => currentYearNow - 5 + i);
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200">
@@ -73,34 +60,26 @@ const MonthViewContainer: React.FC<MonthViewContainerProps> = ({
           </span>
         </div>
 
-        {/* Date Navigation */}
+        {/* Year Selection */}
         <div className="flex items-center gap-3">
-          <div className="text-lg font-semibold text-gray-800">
-            {dateRangeText}
-          </div>
+          <select
+            value={currentYear}
+            onChange={handleYearChange}
+            className="text-lg font-semibold text-gray-800 bg-white border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+          >
+            {yearOptions.map(year => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
 
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleNavigateBack}
-              className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-              aria-label="Previous month"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              onClick={handleToday}
-              className="px-3 py-1 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
-            >
-              Today
-            </button>
-            <button
-              onClick={handleNavigateForward}
-              className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-              aria-label="Next month"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
+          <button
+            onClick={handleToday}
+            className="px-3 py-1 rounded hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
+          >
+            Today
+          </button>
         </div>
 
         {/* Task Count */}

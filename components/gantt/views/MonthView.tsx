@@ -66,11 +66,29 @@ const MonthView: React.FC<ViewProps> = ({
     }
   }, []);
 
+  const taskListRef = useRef<HTMLDivElement>(null);
+
+  // Sync scroll between task names and timeline
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    const taskList = taskListRef.current;
+
+    if (!scrollContainer || !taskList) return;
+
+    const handleScroll = () => {
+      taskList.scrollTop = scrollContainer.scrollTop;
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="flex h-full overflow-hidden">
       {/* Fixed Left Column for Task Names */}
       <div
-        className="flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto overflow-x-hidden z-30"
+        ref={taskListRef}
+        className="flex-shrink-0 border-r border-gray-200 bg-white overflow-y-hidden overflow-x-hidden z-30"
         style={{ width: `${TASK_NAME_WIDTH}px` }}
       >
         {/* Task Header */}
