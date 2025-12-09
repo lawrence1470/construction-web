@@ -85,7 +85,7 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
       {formattedDate && (
         <div
           className={cn(
-            '-translate-x-1/2 absolute top-10 hidden whitespace-nowrap rounded-lg border border-gray-200 bg-white px-2 py-1 text-gray-900 text-xs group-hover:block',
+            '-translate-x-1/2 absolute top-10 hidden whitespace-nowrap rounded-lg border border-gray-200 dark:border-[var(--border-color)] bg-white dark:bg-[var(--bg-card)] px-2 py-1 text-gray-900 dark:text-[var(--text-primary)] text-xs group-hover:block',
             isPressed && 'block'
           )}
         >
@@ -112,6 +112,26 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
   const { attributes, listeners, setNodeRef } = useDraggable({ id });
   const isPressed = Boolean(attributes['aria-pressed']);
 
+  // Set dragging on pointer down (before 10px threshold) to prevent add helper flash
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    setDragging(true);
+    listeners?.onPointerDown?.(e as unknown as PointerEvent);
+  }, [setDragging, listeners]);
+
+  // Clear dragging on pointer up if drag wasn't activated
+  useEffect(() => {
+    const handlePointerUp = () => {
+      // Only clear if not actually dragging (aria-pressed handles the drag case)
+      if (!isPressed) {
+        setDragging(false);
+      }
+    };
+
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => window.removeEventListener('pointerup', handlePointerUp);
+  }, [isPressed, setDragging]);
+
+  // Also sync with isPressed for when drag is active
   useEffect(() => setDragging(isPressed), [isPressed, setDragging]);
 
   return (
@@ -124,8 +144,8 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
       whileTap={{ scale: 0.98 }}
     >
       <Card className={cn(
-        'h-full w-full rounded-md bg-white p-2 text-xs shadow-sm transition-colors',
-        isPressed && 'bg-gray-50'
+        'h-full w-full rounded-md bg-white dark:bg-[var(--bg-card)] p-2 text-xs shadow-sm transition-colors',
+        isPressed && 'bg-gray-50 dark:bg-[var(--bg-hover)]'
       )}>
         <div
           className={cn(
@@ -134,6 +154,7 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
           )}
           {...attributes}
           {...listeners}
+          onPointerDown={handlePointerDown}
           ref={setNodeRef}
         >
           {children}
@@ -171,6 +192,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
 }) => {
   const [scrollX] = useGanttScrollX();
   const [, setDropTarget] = useGanttDropTarget();
+  const [, setGlobalDragging] = useGanttDragging();
   const gantt = useContext(GanttContext);
   const [mousePosition] = useMouse<HTMLDivElement>();
 
@@ -246,7 +268,8 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     setPreviousStartAt(startAt);
     setPreviousEndAt(endAt);
     setIsDragging(true);
-  }, [mousePosition.x, mousePosition.y, startAt, endAt]);
+    setGlobalDragging(true);
+  }, [mousePosition.x, mousePosition.y, startAt, endAt, setGlobalDragging]);
 
   const handleItemDragMove = useCallback(() => {
     const currentDate = getDateByMousePosition(gantt, mousePosition.x);
@@ -295,6 +318,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
 
     setVerticalOffset(0);
     setIsDragging(false);
+    setGlobalDragging(false);
     setDropTarget(null);
 
     onMove?.(feature.id, startAt, endAt, targetRow);
@@ -304,6 +328,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     currentVisualRow,
     findNearestValidRow,
     setDropTarget,
+    setGlobalDragging,
     onMove,
     feature.id,
     startAt,

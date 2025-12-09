@@ -19,7 +19,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="h-screen w-20 bg-[#d8d9e8] flex flex-col items-center py-6 gap-4 sticky top-0">
+    <aside className="h-screen w-20 bg-[#d8d9e8] dark:bg-[var(--bg-primary)] flex flex-col items-center py-6 gap-4 sticky top-0 transition-colors duration-300">
       {navItems.map((item) => {
         const Icon = getIcon(item.icon);
         const isActive = pathname === item.href;
@@ -30,11 +30,11 @@ export default function Sidebar() {
             href={item.href}
             className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors cursor-pointer ${
               isActive
-                ? 'bg-gray-800 hover:bg-gray-700'
-                : 'bg-white hover:bg-gray-100'
+                ? 'bg-gray-800 dark:bg-purple-600 hover:bg-gray-700 dark:hover:bg-purple-500'
+                : 'bg-white dark:bg-[var(--bg-input)] hover:bg-gray-100 dark:hover:bg-[var(--bg-hover)]'
             }`}
           >
-            <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-600'}`} />
+            <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-600 dark:text-[var(--text-secondary)]'}`} />
           </Link>
         );
       })}

@@ -90,12 +90,12 @@ export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
 
   return (
     <div
-      className="sticky top-0 z-20 grid w-full shrink-0 bg-white"
+      className="sticky top-0 z-20 grid w-full shrink-0 bg-white dark:bg-[var(--bg-card)] transition-colors duration-300"
       style={{ height: 'var(--gantt-header-height)' }}
     >
       <div>
         <div
-          className="sticky inline-flex whitespace-nowrap px-3 py-2 text-gray-600 text-xs"
+          className="sticky inline-flex whitespace-nowrap px-3 py-2 text-gray-600 dark:text-[var(--text-secondary)] text-xs"
           style={{
             left: 'var(--gantt-sidebar-width)',
           }}
@@ -112,7 +112,7 @@ export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
         {Array.from({ length: columns }).map((_, index) => (
           <div
             key={`${id}-${index}`}
-            className="shrink-0 border-gray-200 border-b py-1 text-center text-xs"
+            className="shrink-0 border-gray-200 dark:border-[var(--border-color)] border-b py-1 text-center text-xs text-gray-800 dark:text-[var(--text-primary)]"
           >
             {renderHeaderItem(index)}
           </div>
@@ -138,7 +138,7 @@ const DailyHeader: FC = () => {
                 <p>
                   {format(addDays(new Date(year.year, index, 1), item), 'd')}
                 </p>
-                <p className="text-gray-500">
+                <p className="text-gray-500 dark:text-[var(--text-tertiary)]">
                   {format(
                     addDays(new Date(year.year, index, 1), item),
                     'EEEEE'
@@ -279,7 +279,7 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
         height: 'var(--gantt-row-height)',
       }}
       whileHover={{
-        backgroundColor: 'rgba(243, 244, 246, 0.8)',
+        backgroundColor: 'var(--gantt-hover-bg, rgba(243, 244, 246, 0.8))',
         transition: { duration: 0.15 }
       }}
       whileTap={{ scale: 0.98 }}
@@ -292,20 +292,20 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
         whileHover={{ scale: 1.3 }}
         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       />
-      <p className="pointer-events-none flex-1 truncate text-left font-medium">
+      <p className="pointer-events-none flex-1 truncate text-left font-medium text-gray-800 dark:text-[var(--text-primary)]">
         {feature.name}
       </p>
-      <p className="pointer-events-none text-gray-500">{duration}</p>
+      <p className="pointer-events-none text-gray-500 dark:text-[var(--text-tertiary)]">{duration}</p>
     </motion.div>
   );
 };
 
 export const GanttSidebarHeader: FC = () => (
   <div
-    className="sticky top-0 z-10 flex shrink-0 items-end border-gray-200 border-b bg-white font-medium text-gray-600 text-xs"
+    className="sticky top-0 z-10 flex shrink-0 items-end border-gray-200 dark:border-[var(--border-color)] border-b bg-white dark:bg-[var(--bg-card)] font-medium text-gray-600 dark:text-[var(--text-secondary)] text-xs transition-colors duration-300"
     style={{ height: 'var(--gantt-header-height)' }}
   >
-    <p className="w-[100px] shrink-0 truncate p-2.5 text-left border-r border-gray-200">Groups</p>
+    <p className="w-[100px] shrink-0 truncate p-2.5 text-left border-r border-gray-200 dark:border-[var(--border-color)]">Groups</p>
     <div className="flex flex-1 items-end justify-between gap-2.5 p-2.5">
       <p className="flex-1 truncate text-left">Issues</p>
       <p className="shrink-0">Duration</p>
@@ -332,18 +332,18 @@ export const GanttSidebarGroup: FC<GanttSidebarGroupProps> = ({
     {/* Group name column - spans all task rows */}
     <div
       className={cn(
-        'w-[100px] shrink-0 border-r border-gray-200 flex items-center',
+        'w-[100px] shrink-0 border-r border-gray-200 dark:border-[var(--border-color)] flex items-center',
         isFullscreen && 'h-full'
       )}
       style={isFullscreen ? undefined : { height: `calc(${taskCount} * var(--gantt-row-height))` }}
     >
-      <p className="w-full truncate p-2.5 text-left font-medium text-gray-600 text-xs">
+      <p className="w-full truncate p-2.5 text-left font-medium text-gray-600 dark:text-[var(--text-secondary)] text-xs">
         {name}
       </p>
     </div>
     {/* Tasks column */}
     <div className={cn(
-      'flex-1 divide-y divide-gray-200',
+      'flex-1 divide-y divide-gray-200 dark:divide-[var(--border-color)]',
       isFullscreen && 'flex flex-col'
     )}>{children}</div>
   </div>
@@ -363,14 +363,14 @@ export const GanttSidebar: FC<GanttSidebarProps> = ({
   <div
     data-roadmap-ui="gantt-sidebar"
     className={cn(
-      'sticky left-0 z-30 overflow-clip border-gray-200 border-r bg-white',
+      'sticky left-0 z-30 overflow-clip border-gray-200 dark:border-[var(--border-color)] border-r bg-white dark:bg-[var(--bg-card)] transition-colors duration-300',
       isFullscreen ? 'h-full flex flex-col' : 'h-max min-h-full',
       className
     )}
   >
     <GanttSidebarHeader />
     <div className={cn(
-      'divide-y divide-gray-200',
+      'divide-y divide-gray-200 dark:divide-[var(--border-color)]',
       isFullscreen && 'flex-1 overflow-auto flex flex-col'
     )}>{children}</div>
   </div>
@@ -412,11 +412,11 @@ export const GanttAddFeatureHelper: FC<GanttAddFeatureHelperProps> = ({
       <button
         onClick={handleClick}
         type="button"
-        className="flex h-full w-full items-center justify-center bg-blue-50/50 border border-dashed border-blue-300 transition-colors hover:bg-blue-100/50"
+        className="flex h-full w-full items-center justify-center bg-blue-50/50 dark:bg-blue-900/20 border border-dashed border-blue-300 dark:border-blue-600 transition-colors hover:bg-blue-100/50 dark:hover:bg-blue-900/40"
       >
         <PlusIcon
           size={16}
-          className="pointer-events-none select-none text-blue-400"
+          className="pointer-events-none select-none text-blue-400 dark:text-blue-300"
         />
       </button>
     </div>
@@ -434,6 +434,7 @@ export const GanttColumn: FC<GanttColumnProps> = ({
 }) => {
   const gantt = useContext(GanttContext);
   const [dragging] = useGanttDragging();
+  const [dropTarget] = useGanttDropTarget();
   const [mousePosition, mouseRef] = useMouse<HTMLDivElement>();
   const [hovering, setHovering] = useState(false);
   const [windowScroll] = useWindowScroll();
@@ -450,6 +451,9 @@ export const GanttColumn: FC<GanttColumnProps> = ({
   const rowIndex = Math.floor(rawTop / gantt.rowHeight);
   const snappedTop = rowIndex * gantt.rowHeight;
 
+  // Check both dragging state AND dropTarget - dropTarget indicates active drag
+  const isAnyDragging = dragging || dropTarget !== null;
+
   return (
     // biome-ignore lint/nursery/noStaticElementInteractions: <explanation>
     <div
@@ -461,7 +465,7 @@ export const GanttColumn: FC<GanttColumnProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {!dragging && hovering && gantt.onAddItem ? (
+      {!isAnyDragging && hovering && gantt.onAddItem ? (
         <GanttAddFeatureHelper top={snappedTop} rowIndex={rowIndex} />
       ) : null}
     </div>
@@ -481,7 +485,7 @@ export const GanttColumns: FC<GanttColumnsProps> = ({
 
   return (
     <div
-      className="divide grid h-full w-full divide-x divide-gray-200"
+      className="divide grid h-full w-full divide-x divide-gray-200 dark:divide-[var(--border-color)]"
       style={{
         gridTemplateColumns: `repeat(${columns}, var(--gantt-column-width))`,
       }}
@@ -534,12 +538,12 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
       >
         <button
           type="button"
-          className="z-50 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white border border-gray-200"
+          className="z-50 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-[var(--bg-card)] border border-gray-200 dark:border-[var(--border-color)]"
           onClick={handleClick}
         >
-          <PlusIcon size={12} className="text-gray-500" />
+          <PlusIcon size={12} className="text-gray-500 dark:text-[var(--text-secondary)]" />
         </button>
-        <div className="whitespace-nowrap rounded-full border border-gray-200 bg-white px-2 py-1 text-gray-900 text-xs">
+        <div className="whitespace-nowrap rounded-full border border-gray-200 dark:border-[var(--border-color)] bg-white dark:bg-[var(--bg-card)] px-2 py-1 text-gray-900 dark:text-[var(--text-primary)] text-xs">
           {formatDate(date, 'MMM dd, yyyy')}
         </div>
       </div>
@@ -563,7 +567,7 @@ export const GanttDropZoneIndicator: FC<GanttDropZoneIndicatorProps> = ({
         <motion.div
           className={cn(
             'pointer-events-none absolute z-40',
-            'bg-blue-100/80 border-2 border-blue-400 border-dashed rounded-md',
+            'bg-blue-100/80 dark:bg-blue-900/40 border-2 border-blue-400 dark:border-blue-500 border-dashed rounded-md',
             className
           )}
           style={{
@@ -631,7 +635,7 @@ export const GanttRowGrid: FC<GanttRowGridProps> = ({ totalRows, taskRowIndices,
       {rowsToRender.map((rowIndex) => (
         <div
           key={`${id}-row-${rowIndex}`}
-          className="absolute left-0 w-full border-b border-gray-200"
+          className="absolute left-0 w-full border-b border-gray-200 dark:border-[var(--border-color)]"
           style={{
             top: `calc(${rowIndex + 1} * var(--gantt-row-height))`,
           }}
@@ -683,7 +687,7 @@ export const GanttMarker: FC<
         <ContextMenuTrigger asChild>
           <div
             className={cn(
-              'group pointer-events-auto sticky top-0 flex select-auto flex-col flex-nowrap items-center justify-center whitespace-nowrap rounded-b-md bg-white border border-gray-200 px-2 py-1 text-gray-900 text-xs',
+              'group pointer-events-auto sticky top-0 flex select-auto flex-col flex-nowrap items-center justify-center whitespace-nowrap rounded-b-md bg-white dark:bg-[var(--bg-card)] border border-gray-200 dark:border-[var(--border-color)] px-2 py-1 text-gray-900 dark:text-[var(--text-primary)] text-xs',
               className
             )}
           >

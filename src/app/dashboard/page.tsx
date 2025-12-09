@@ -173,8 +173,8 @@ export default function DashboardPage() {
     <LayoutWrapper>
       {/* Greeting Section */}
       <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-800 mb-1">Good morning, Alex!</h1>
-        <p className="text-gray-500">Let&apos;s build something great today.</p>
+        <h1 className="text-2xl font-medium text-gray-800 dark:text-[var(--text-primary)] mb-1">Good morning, Alex!</h1>
+        <p className="text-gray-500 dark:text-[var(--text-secondary)]">Let&apos;s build something great today.</p>
       </div>
 
       {/* Stats Cards */}
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/30 dark:bg-black/50 z-40 backdrop-blur-sm"
             onClick={() => setIsFullscreen(false)}
           />
         )}
@@ -197,7 +197,7 @@ export default function DashboardPage() {
       {/* Gantt Chart Section */}
       <div
         className={`
-          bg-white rounded-3xl p-6 overflow-hidden min-w-0
+          bg-white dark:bg-[var(--bg-card)] rounded-3xl p-6 overflow-hidden min-w-0 transition-colors duration-300
           ${isFullscreen
             ? 'fixed inset-4 z-50 shadow-2xl'
             : 'relative mt-6'
@@ -206,24 +206,24 @@ export default function DashboardPage() {
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-purple-200 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <h2 className={`font-medium text-gray-800 ${isFullscreen ? 'text-2xl' : 'text-xl'}`}>
+              <h2 className={`font-medium text-gray-800 dark:text-[var(--text-primary)] ${isFullscreen ? 'text-2xl' : 'text-xl'}`}>
                 Project Timeline
               </h2>
-              <p className="text-sm text-gray-500">Track your construction schedule</p>
+              <p className="text-sm text-gray-500 dark:text-[var(--text-secondary)]">Track your construction schedule</p>
             </div>
           </div>
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center hover:bg-gray-200 hover:scale-110 active:scale-90 transition-all cursor-pointer"
+            className="w-10 h-10 bg-gray-100 dark:bg-[var(--bg-input)] rounded-2xl flex items-center justify-center hover:bg-gray-200 dark:hover:bg-[var(--bg-hover)] hover:scale-110 active:scale-90 transition-all cursor-pointer"
           >
             {isFullscreen ? (
-              <Minimize2 className="w-5 h-5 text-gray-600" />
+              <Minimize2 className="w-5 h-5 text-gray-600 dark:text-[var(--text-secondary)]" />
             ) : (
-              <Maximize2 className="w-5 h-5 text-gray-600" />
+              <Maximize2 className="w-5 h-5 text-gray-600 dark:text-[var(--text-secondary)]" />
             )}
           </button>
         </div>

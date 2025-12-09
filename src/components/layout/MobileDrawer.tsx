@@ -50,7 +50,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 bg-black/30 dark:bg-black/50 transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -59,7 +59,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#d8d9e8] transform transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#d8d9e8] dark:bg-[var(--bg-primary)] transform transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"
@@ -67,19 +67,19 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
         aria-label="Navigation menu"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-300/50">
+        <div className="flex items-center justify-between p-4 border-b border-gray-300/50 dark:border-[var(--border-color)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-800 dark:bg-gray-700 rounded-full flex items-center justify-center">
               <div className="w-6 h-6 border-2 border-white rounded-full"></div>
             </div>
-            <span className="text-gray-800 font-medium">BuildTrack Pro</span>
+            <span className="text-gray-800 dark:text-[var(--text-primary)] font-medium">BuildTrack Pro</span>
           </div>
           <button
             onClick={onClose}
             aria-label="Close menu"
-            className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
+            className="w-10 h-10 bg-white dark:bg-[var(--bg-input)] rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-gray-600 dark:text-[var(--text-secondary)]" />
           </button>
         </div>
 
@@ -95,8 +95,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 href={item.href}
                 className={`flex items-center gap-4 p-4 rounded-2xl transition-colors ${
                   isActive
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-white/50 text-gray-700 hover:bg-white'
+                    ? 'bg-gray-800 dark:bg-purple-600 text-white'
+                    : 'bg-white/50 dark:bg-[var(--bg-input)]/50 text-gray-700 dark:text-[var(--text-primary)] hover:bg-white dark:hover:bg-[var(--bg-hover)]'
                 }`}
               >
                 <Icon className="w-6 h-6" />

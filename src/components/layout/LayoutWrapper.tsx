@@ -17,7 +17,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   return (
-    <div className="h-screen bg-[#e8e9f3] overflow-hidden">
+    <div className="h-screen bg-[var(--bg-primary)] overflow-hidden transition-colors duration-300">
       {/* Desktop Layout */}
       <div className="hidden md:flex h-screen">
         <Sidebar />

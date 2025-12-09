@@ -4,3 +4,79 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-primary: #e8e9f3;
+  --bg-secondary: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #f3f4f6;
+  --bg-hover: #f3f4f6;
+  --bg-accent: #f3e8ff;
+
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+
+  --accent-purple: #9333ea;
+  --accent-purple-light: #f3e8ff;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+}
+
+.dark {
+  /* Background layers - refined depth hierarchy */
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-sidebar: #111827;
+  --bg-card: #1a2332;
+  --bg-input: #243044;
+  --bg-hover: #2d3a4f;
+  --bg-accent: #1e1b4b;
+  --bg-elevated: #1f2937;
+
+  /* Text - improved contrast ratios */
+  --text-primary: #f8fafc;
+  --text-secondary: #a1b1c7;
+  --text-tertiary: #7a8ca3;
+  --text-muted: #5a6b80;
+
+  /* Borders - subtle but visible */
+  --border-color: #2a3546;
+  --border-light: #1e2939;
+  --border-strong: #3d4f65;
+
+  /* Accent colors - vibrant for dark backgrounds */
+  --accent-purple: #a78bfa;
+  --accent-purple-light: #2e1065;
+  --accent-purple-glow: rgba(167, 139, 250, 0.15);
+  --accent-blue: #60a5fa;
+  --accent-blue-light: #1e3a5f;
+  --accent-green: #4ade80;
+  --accent-green-light: #14532d;
+  --accent-orange: #fb923c;
+  --accent-orange-light: #7c2d12;
+  --accent-red: #f87171;
+  --accent-red-light: #7f1d1d;
+  --accent-yellow: #fbbf24;
+
+  /* Interactive states */
+  --focus-ring: rgba(167, 139, 250, 0.5);
+  --shadow-color: rgba(0, 0, 0, 0.4);
+
+  /* Gantt specific */
+  --gantt-hover-bg: rgba(45, 58, 79, 0.8);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

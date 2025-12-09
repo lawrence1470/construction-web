@@ -4,8 +4,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { differenceInMonths, getDaysInMonth } from 'date-fns';
-import { atom, useAtom } from 'jotai';
+import { differenceInMonths } from 'date-fns';
 import throttle from 'lodash.throttle';
 import {
   useEffect,
@@ -23,20 +22,16 @@ import type { Range, TimelineData } from '../types';
 import { createInitialTimelineData } from '../utils';
 import { GanttContext } from './GanttContext';
 
-const draggingAtom = atom(false);
-const scrollXAtom = atom(0);
+// Re-export from Zustand store for backwards compatibility
+export {
+  useGanttDragging,
+  useGanttScrollX,
+  useGanttDropTarget,
+} from '@/store/useGanttUIStore';
+export type { DropTargetInfo } from '@/store/useGanttUIStore';
 
-export type DropTargetInfo = {
-  rowIndex: number;
-  width: number;
-  offset: number;
-} | null;
-
-const dropTargetAtom = atom<DropTargetInfo>(null);
-
-export const useGanttDragging = () => useAtom(draggingAtom);
-export const useGanttScrollX = () => useAtom(scrollXAtom);
-export const useGanttDropTarget = () => useAtom(dropTargetAtom);
+// Import for internal use
+import { useGanttScrollX } from '@/store/useGanttUIStore';
 
 export type GanttProviderProps = {
   range?: Range;
