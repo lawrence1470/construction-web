@@ -3,18 +3,30 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get("better-auth.session_token");
-  const isAuthPage = request.nextUrl.pathname.startsWith("/sign-in") ||
-                     request.nextUrl.pathname.startsWith("/sign-up");
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const pathname = request.nextUrl.pathname;
 
-  // Allow API routes and auth pages without authentication
-  if (isApiRoute || isAuthPage) {
+  const isAuthPage = pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
+  const isApiRoute = pathname.startsWith("/api");
+  const isLandingPage = pathname === "/";
+
+  // Allow API routes without authentication check
+  if (isApiRoute) {
     return NextResponse.next();
   }
 
-  // Redirect to sign-in if no session cookie
+  // Redirect authenticated users away from auth pages and landing page to dashboard
+  if ((isAuthPage || isLandingPage) && sessionCookie) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Allow unauthenticated users to access auth pages and landing page
+  if (isAuthPage || isLandingPage) {
+    return NextResponse.next();
+  }
+
+  // Redirect to sign-in if no session cookie for protected routes
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/sign-in?callbackUrl=" + request.nextUrl.pathname, request.url));
+    return NextResponse.redirect(new URL("/sign-in?callbackUrl=" + pathname, request.url));
   }
 
   return NextResponse.next();

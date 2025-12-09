@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, User, Settings } from 'lucide-react';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
@@ -10,7 +10,6 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -49,11 +48,14 @@ export default function UserMenu() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await signOut();
-      setIsOpen(false);
-
-      startTransition(() => {
-        router.push('/sign-in');
+      await signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            setIsOpen(false);
+            router.push('/sign-in');
+            router.refresh();
+          }
+        }
       });
     } catch (error) {
       console.error('Logout failed:', error);
@@ -102,10 +104,10 @@ export default function UserMenu() {
           <div className="border-t border-gray-100 mt-1 pt-1">
             <button
               onClick={handleLogout}
-              disabled={isLoggingOut || isPending}
+              disabled={isLoggingOut}
               className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoggingOut || isPending ? (
+              {isLoggingOut ? (
                 <>
                   <LoadingSpinner size="sm" />
                   <span>Logging out...</span>
@@ -122,7 +124,7 @@ export default function UserMenu() {
       )}
 
       {/* Full-screen loading overlay during logout */}
-      {(isLoggingOut || isPending) && (
+      {isLoggingOut && (
         <LoadingSpinner size="lg" fullScreen text="Logging out..." />
       )}
     </div>

@@ -324,6 +324,16 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
           features: state.features,
           visualRowMap: state.visualRowMap,
         }),
+        // Rehydrate dates from localStorage (JSON serializes them as strings)
+        onRehydrateStorage: () => (state) => {
+          if (state?.features) {
+            state.features = state.features.map((feature) => ({
+              ...feature,
+              startAt: new Date(feature.startAt),
+              endAt: new Date(feature.endAt),
+            }));
+          }
+        },
       }
     ),
     { name: 'ConstructionStore' }

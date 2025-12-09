@@ -14,6 +14,16 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   trustedOrigins: ["http://localhost:5050"],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5,
+    },
+  },
+  pages: {
+    signIn: "/sign-in",
+    signUp: "/sign-up",
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;

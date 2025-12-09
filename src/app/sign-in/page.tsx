@@ -6,11 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,19 +25,22 @@ function SignInForm() {
     setLoading(true);
 
     try {
-      const result = await signIn.email({
+      await signIn.email({
         email,
         password,
+        fetchOptions: {
+          onSuccess: () => {
+            router.push(callbackUrl);
+            router.refresh();
+          },
+          onError: (ctx) => {
+            setError(ctx.error.message || "Sign in failed");
+            setLoading(false);
+          },
+        },
       });
-
-      if (result.error) {
-        setError(result.error.message || "Sign in failed");
-      } else {
-        router.push(callbackUrl);
-      }
     } catch (err) {
       setError("An unexpected error occurred");
-    } finally {
       setLoading(false);
     }
   };
@@ -47,12 +51,12 @@ function SignInForm() {
         {/* Left side - Form */}
         <div className="p-12 lg:p-16 flex flex-col justify-center">
           <div className="mb-12">
-            <div className="flex items-center gap-3 mb-8">
+            <Link href="/" className="flex items-center gap-3 mb-8 w-fit hover:opacity-80 transition-opacity">
               <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-white rounded-full"></div>
               </div>
               <span className="text-gray-800 text-lg font-medium">BuildTrack Pro</span>
-            </div>
+            </Link>
             <h1 className="text-2xl font-medium text-gray-800 mb-3">Welcome back</h1>
             <p className="text-gray-500">Sign in to continue to your dashboard</p>
           </div>
@@ -128,14 +132,14 @@ function SignInForm() {
               </a>
             </div>
 
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-gray-800 text-white py-4 rounded-full hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
+              className="w-full h-14 bg-gray-800 text-white text-base rounded-full hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 group cursor-pointer"
             >
-              {loading ? "Signing in..." : "Sign in"}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+              Sign in
+              {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+            </Button>
           </form>
 
           <div className="mt-8 text-center">
