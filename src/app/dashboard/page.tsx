@@ -22,6 +22,7 @@ import {
   type GanttStatus,
 } from '@/components/ui/gantt';
 import GanttTaskColumn from '@/components/gantt/GanttTaskColumn';
+import AddTaskModal, { type NewTaskData } from '@/components/gantt/AddTaskModal';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -152,6 +153,8 @@ export default function DashboardPage() {
 
   const [features, setFeatures] = useState(() => initialFeatures);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Track visual row positions for each feature (allows cards to be on different rows than their natural position)
   const [visualRowMap, setVisualRowMap] = useState<Record<string, number>>({});
@@ -224,8 +227,28 @@ export default function DashboardPage() {
   };
 
   const handleAddFeature = (date: Date) => {
-    // Placeholder for adding new feature at specified date
-    void date;
+    setSelectedDate(date);
+    setAddTaskModalOpen(true);
+  };
+
+  const handleAddTask = (taskData: NewTaskData) => {
+    // Map status ID to full status object
+    const statusMap: Record<string, GanttStatus> = {
+      'completed': completedStatus,
+      'in-progress': inProgressStatus,
+      'planned': plannedStatus,
+    };
+
+    const newFeature: GanttFeature = {
+      id: `task-${Date.now()}`,
+      name: taskData.name,
+      startAt: taskData.startAt,
+      endAt: taskData.endAt,
+      status: statusMap[taskData.statusId] ?? plannedStatus,
+      group: taskData.group,
+    };
+
+    setFeatures((prev) => [...prev, newFeature]);
   };
 
   return (
@@ -385,6 +408,15 @@ export default function DashboardPage() {
         <ProjectsList />
         <TeamActivity />
       </div>
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        open={addTaskModalOpen}
+        onOpenChange={setAddTaskModalOpen}
+        defaultDate={selectedDate}
+        groupNames={groupNames}
+        onAddTask={handleAddTask}
+      />
     </LayoutWrapper>
   );
 }
