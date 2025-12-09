@@ -80,3 +80,87 @@ body {
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* ============================================
+   Gantt Chart Custom Scrollbar Styles
+   ============================================ */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.gantt::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.gantt::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 6px;
+}
+
+.gantt::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  transition: background 0.2s ease;
+}
+
+.gantt::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.gantt::-webkit-scrollbar-thumb:active {
+  background: var(--accent-purple);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.gantt::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+.gantt {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) transparent;
+}
+
+/* Smooth scrolling with momentum */
+.gantt {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Scroll snap for month columns */
+.gantt.monthly {
+  scroll-snap-type: x proximity;
+}
+
+.gantt.monthly .gantt-snap-point {
+  scroll-snap-align: start;
+}
+
+/* Dark mode scrollbar adjustments */
+.dark .gantt::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.dark .gantt::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.dark .gantt::-webkit-scrollbar-thumb:active {
+  background: var(--accent-purple);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.dark .gantt {
+  scrollbar-color: var(--text-tertiary) transparent;
+}

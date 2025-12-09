@@ -42,35 +42,35 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#e8e9f3] flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-0 bg-white rounded-3xl overflow-hidden shadow-xl">
+    <div className="min-h-screen bg-[#e8e9f3] dark:bg-[var(--bg-primary)] flex items-center justify-center p-6 transition-colors">
+      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-0 bg-white dark:bg-[var(--bg-card)] rounded-3xl overflow-hidden shadow-xl dark:shadow-black/20">
         {/* Left side - Form */}
         <div className="p-12 lg:p-16 flex flex-col justify-center">
           <div className="mb-12">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center">
+            <Link href="/" className="flex items-center gap-3 mb-8 w-fit hover:opacity-80 transition-opacity">
+              <div className="w-12 h-12 bg-gray-800 dark:bg-gray-700 rounded-full flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-white rounded-full"></div>
               </div>
-              <span className="text-gray-800 text-lg font-medium">BuildTrack Pro</span>
-            </div>
-            <h1 className="text-2xl font-medium text-gray-800 mb-3">Create account</h1>
-            <p className="text-gray-500">Get started with your project management</p>
+              <span className="text-gray-800 dark:text-[var(--text-primary)] text-lg font-medium">BuildTrack Pro</span>
+            </Link>
+            <h1 className="text-2xl font-medium text-gray-800 dark:text-[var(--text-primary)] mb-3">Create account</h1>
+            <p className="text-gray-500 dark:text-[var(--text-secondary)]">Get started with your project management</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm">
+              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="name" className="block text-sm text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm text-gray-700 dark:text-[var(--text-secondary)] mb-2">
                 Full name
               </label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <User className="w-5 h-5 text-gray-400" />
+                  <User className="w-5 h-5 text-gray-400 dark:text-[var(--text-muted)]" />
                 </div>
                 <input
                   id="name"
@@ -78,19 +78,19 @@ export default function SignUpPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full pl-12 pr-4 py-4 bg-[#f5f5f9] rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-800 transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-[#f5f5f9] dark:bg-[var(--bg-input)] text-gray-900 dark:text-[var(--text-primary)] rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-800 dark:focus:ring-[var(--accent-purple)] transition-all placeholder:text-gray-500 dark:placeholder:text-[var(--text-muted)]"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm text-gray-700 dark:text-[var(--text-secondary)] mb-2">
                 Email address
               </label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <Mail className="w-5 h-5 text-gray-400" />
+                  <Mail className="w-5 h-5 text-gray-400 dark:text-[var(--text-muted)]" />
                 </div>
                 <input
                   id="email"
@@ -98,19 +98,19 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@company.com"
-                  className="w-full pl-12 pr-4 py-4 bg-[#f5f5f9] rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-800 transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-[#f5f5f9] dark:bg-[var(--bg-input)] text-gray-900 dark:text-[var(--text-primary)] rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-800 dark:focus:ring-[var(--accent-purple)] transition-all placeholder:text-gray-500 dark:placeholder:text-[var(--text-muted)]"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm text-gray-700 dark:text-[var(--text-secondary)] mb-2">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                  <Lock className="w-5 h-5 text-gray-400" />
+                  <Lock className="w-5 h-5 text-gray-400 dark:text-[var(--text-muted)]" />
                 </div>
                 <input
                   id="password"
@@ -118,14 +118,14 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Min 8 characters"
-                  className="w-full pl-12 pr-12 py-4 bg-[#f5f5f9] rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-800 transition-all"
+                  className="w-full pl-12 pr-12 py-4 bg-[#f5f5f9] dark:bg-[var(--bg-input)] text-gray-900 dark:text-[var(--text-primary)] rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-800 dark:focus:ring-[var(--accent-purple)] transition-all placeholder:text-gray-500 dark:placeholder:text-[var(--text-muted)]"
                   required
                   minLength={8}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[var(--text-muted)] hover:text-gray-600 dark:hover:text-[var(--text-secondary)]"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -139,7 +139,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gray-800 text-white py-4 rounded-full hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gray-800 dark:bg-[var(--accent-purple)] text-white py-4 rounded-full hover:bg-gray-700 dark:hover:bg-[var(--accent-purple)]/90 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Creating account..." : "Create account"}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -147,9 +147,9 @@ export default function SignUpPage() {
           </form>
 
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-[var(--text-secondary)]">
               Already have an account?{" "}
-              <Link href="/sign-in" className="text-gray-800 hover:underline">
+              <Link href="/sign-in" className="text-gray-800 dark:text-[var(--accent-purple)] hover:underline">
                 Sign in
               </Link>
             </p>

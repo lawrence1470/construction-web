@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { differenceInMonths } from 'date-fns';
 import throttle from 'lodash.throttle';
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -56,6 +57,10 @@ export const GanttProvider: FC<GanttProviderProps> = ({
   );
   const [, setScrollX] = useGanttScrollX();
   const [sidebarWidth, setSidebarWidth] = useState(300); // Default to 300, will update after mount
+
+  // Scroll fade indicator states
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   const headerHeight = 60;
   const rowHeight = 36;
@@ -109,7 +114,16 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     }
   }, [timelineData, zoom, columnWidth]);
 
-  // Track scroll position only - memoize the throttled function properly
+  // Update scroll fade indicators
+  const updateScrollIndicators = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    const threshold = 10; // Small threshold for edge detection
+    setCanScrollLeft(scrollLeft > threshold);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - threshold);
+  }, []);
+
+  // Track scroll position and update fade indicators - memoize the throttled function properly
   const handleScroll = useMemo(
     () =>
       throttle(() => {
@@ -117,9 +131,15 @@ export const GanttProvider: FC<GanttProviderProps> = ({
           return;
         }
         setScrollX(scrollRef.current.scrollLeft);
+        updateScrollIndicators();
       }, 100),
-    [setScrollX]
+    [setScrollX, updateScrollIndicators]
   );
+
+  // Initialize scroll indicators on mount
+  useEffect(() => {
+    updateScrollIndicators();
+  }, [updateScrollIndicators, timelineData]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -149,19 +169,40 @@ export const GanttProvider: FC<GanttProviderProps> = ({
         validDropRows,
       }}
     >
-      <div
-        className={cn(
-          'gantt relative grid h-full w-full flex-none select-none overflow-auto rounded-sm bg-secondary',
-          range,
-          className
-        )}
-        style={{
-          ...cssVariables,
-          gridTemplateColumns: 'var(--gantt-sidebar-width) 1fr',
-        }}
-        ref={scrollRef}
-      >
-        {children}
+      <div className="relative h-full w-full">
+        {/* Scroll fade indicator - Left */}
+        <div
+          className={cn(
+            'pointer-events-none absolute left-[var(--gantt-sidebar-width)] top-0 z-40 h-full w-16 transition-opacity duration-300',
+            'bg-gradient-to-r from-black/10 dark:from-black/30 to-transparent',
+            canScrollLeft ? 'opacity-100' : 'opacity-0'
+          )}
+          style={{ '--gantt-sidebar-width': `${sidebarWidth}px` } as CSSProperties}
+        />
+
+        {/* Scroll fade indicator - Right */}
+        <div
+          className={cn(
+            'pointer-events-none absolute right-0 top-0 z-40 h-full w-16 transition-opacity duration-300',
+            'bg-gradient-to-l from-black/10 dark:from-black/30 to-transparent',
+            canScrollRight ? 'opacity-100' : 'opacity-0'
+          )}
+        />
+
+        <div
+          className={cn(
+            'gantt relative grid h-full w-full flex-none select-none overflow-auto rounded-sm bg-secondary',
+            range,
+            className
+          )}
+          style={{
+            ...cssVariables,
+            gridTemplateColumns: 'var(--gantt-sidebar-width) 1fr',
+          }}
+          ref={scrollRef}
+        >
+          {children}
+        </div>
       </div>
     </GanttContext.Provider>
   );

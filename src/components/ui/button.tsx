@@ -16,14 +16,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-white dark:ring-offset-[var(--bg-card)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 dark:focus-visible:ring-[var(--accent-purple)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
           {
-            'bg-gray-900 text-gray-50 hover:bg-gray-900/90':
+            'bg-gray-900 dark:bg-[var(--accent-purple)] text-gray-50 dark:text-white hover:bg-gray-900/90 dark:hover:bg-[var(--accent-purple)]/90':
               variant === 'default',
-            'border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900':
+            'border border-gray-200 dark:border-[var(--border-color)] bg-white dark:bg-[var(--bg-input)] hover:bg-gray-100 dark:hover:bg-[var(--bg-hover)] hover:text-gray-900 dark:hover:text-[var(--text-primary)] text-gray-900 dark:text-[var(--text-primary)]':
               variant === 'outline',
-            'hover:bg-gray-100 hover:text-gray-900': variant === 'ghost',
-            'bg-red-500 text-gray-50 hover:bg-red-500/90':
+            'hover:bg-gray-100 dark:hover:bg-[var(--bg-hover)] hover:text-gray-900 dark:hover:text-[var(--text-primary)] dark:text-[var(--text-primary)]': variant === 'ghost',
+            'bg-red-500 dark:bg-[var(--accent-red)] text-gray-50 dark:text-white hover:bg-red-500/90 dark:hover:bg-[var(--accent-red)]/90':
               variant === 'destructive',
           },
           {
