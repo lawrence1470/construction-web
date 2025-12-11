@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useMemo } from 'react';
 import { Calendar, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LayoutWrapper from '@/components/layout/LayoutWrapper';
+import { useSession } from '@/lib/auth-client';
 import StatsCards from '@/components/dashboard/StatsCards';
 import ProjectsList from '@/components/dashboard/ProjectsList';
 import TeamActivity from '@/components/dashboard/TeamActivity';
@@ -109,6 +110,9 @@ const GanttFeatureRow = memo(function GanttFeatureRow({
 });
 
 export default function DashboardPage() {
+  // Auth session for user info
+  const { data: session } = useSession();
+
   // Zustand state - features, groups, statuses from store
   const { grouped: groupedFeatures, flatList: allFeaturesWithIndex, totalRows } = useGroupedFeaturesWithRows();
   const { add: addFeature, remove: removeFeature, move: moveFeature } = useFeatureActions();
@@ -120,6 +124,20 @@ export default function DashboardPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  // Dynamic greeting based on time of day
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }, []);
+
+  // Get user's first name from session
+  const userName = useMemo(() => {
+    if (!session?.user?.name) return '';
+    return session.user.name.split(' ')[0];
+  }, [session?.user?.name]);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const handleViewFeature = useCallback((id: string) => {
@@ -173,7 +191,7 @@ export default function DashboardPage() {
     <LayoutWrapper>
       {/* Greeting Section */}
       <div className="mb-6">
-        <h1 className="text-2xl font-medium text-gray-800 dark:text-[var(--text-primary)] mb-1">Good morning, Alex!</h1>
+        <h1 className="text-2xl font-medium text-gray-800 dark:text-[var(--text-primary)] mb-1">{greeting}{userName ? `, ${userName}` : ''}!</h1>
         <p className="text-gray-500 dark:text-[var(--text-secondary)]">Let&apos;s build something great today.</p>
       </div>
 
