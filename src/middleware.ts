@@ -14,13 +14,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Redirect authenticated users away from auth pages and landing page to dashboard
-  if ((isAuthPage || isLandingPage) && sessionCookie) {
+  // Allow landing page for all users (authenticated and unauthenticated)
+  if (isLandingPage) {
+    return NextResponse.next();
+  }
+
+  // Redirect authenticated users away from auth pages to dashboard
+  if (isAuthPage && sessionCookie) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Allow unauthenticated users to access auth pages and landing page
-  if (isAuthPage || isLandingPage) {
+  // Allow unauthenticated users to access auth pages
+  if (isAuthPage) {
     return NextResponse.next();
   }
 
@@ -39,8 +44,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - images folder (public images)
      */
-    "/((?!_next/static|_next/image|favicon.ico|public).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images).*)",
   ],
 };
