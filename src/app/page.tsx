@@ -104,7 +104,7 @@ export default function Home() {
           <div className="relative">
             <div className="relative h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl">
               <Image
-                src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=1000&fit=crop"
+                src="/images/hero-construction.jpg"
                 alt="Construction site aerial view"
                 fill
                 className="object-cover"

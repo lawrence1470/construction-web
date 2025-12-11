@@ -159,7 +159,7 @@ export default function SignUpPage() {
         {/* Right side - Image */}
         <div className="relative hidden lg:block">
           <Image
-            src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=1000&fit=crop"
+            src="/images/auth-construction.jpg"
             alt="Construction site"
             fill
             className="object-cover"

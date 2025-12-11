@@ -11,8 +11,8 @@ const projects = [
     timeframe: 'Today 08:00 AM - 03:00 PM',
     completed: true,
     assignees: [
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+      '/images/avatar-1.jpg',
+      '/images/avatar-2.jpg',
     ],
   },
   {
@@ -22,8 +22,8 @@ const projects = [
     timeframe: 'Today 09:00 AM - 05:00 PM',
     completed: false,
     assignees: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+      '/images/avatar-3.jpg',
+      '/images/avatar-4.jpg',
     ],
   },
 ];

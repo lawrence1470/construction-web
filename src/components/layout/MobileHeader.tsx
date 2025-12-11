@@ -46,7 +46,7 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
         </button>
         <button className="w-9 h-9 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden cursor-pointer">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+            src="/images/avatar-1.jpg"
             alt="User"
             className="w-full h-full object-cover"
           />
