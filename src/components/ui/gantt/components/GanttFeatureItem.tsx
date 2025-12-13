@@ -16,12 +16,14 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import type { FC, ReactNode } from 'react';
 
 import { Card } from '@/components/ui/card';
-import type { GanttFeature } from '../types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import type { GanttTimelineBar, GanttFeature } from '../types';
 import {
   getDifferenceIn,
   getInnerDifferenceIn,
@@ -33,23 +35,26 @@ import {
 import { GanttContext, useGanttDragging, useGanttScrollX, useGanttDropTarget } from '../context';
 
 // ============================================
-// GanttFeatureDragHelper - Resize handles
+// GanttTimelineBarDragHelper - Resize handles
 // ============================================
 
-export type GanttFeatureDragHelperProps = {
-  featureId: GanttFeature['id'];
+export type GanttTimelineBarDragHelperProps = {
+  timelineBarId: GanttTimelineBar['id'];
   direction: 'left' | 'right';
   date: Date | null;
 };
 
-export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
+// Backwards compatibility alias
+export type GanttFeatureDragHelperProps = GanttTimelineBarDragHelperProps;
+
+export const GanttTimelineBarDragHelper: FC<GanttTimelineBarDragHelperProps> = ({
   direction,
-  featureId,
+  timelineBarId,
   date,
 }) => {
   const [, setDragging] = useGanttDragging();
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: `feature-drag-helper-${featureId}`,
+    id: `timeline-bar-drag-helper-${timelineBarId}`,
   });
 
   const isPressed = Boolean(attributes['aria-pressed']);
@@ -96,27 +101,63 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
   );
 };
 
+// Backwards compatibility alias for the component
+export const GanttFeatureDragHelper = GanttTimelineBarDragHelper;
+
 // ============================================
-// GanttFeatureItemCard - Draggable card wrapper
+// GanttTimelineBarCard - Draggable card wrapper
 // ============================================
 
-export type GanttFeatureItemCardProps = Pick<GanttFeature, 'id'> & {
+export type GanttTimelineBarCardProps = Pick<GanttTimelineBar, 'id'> & {
   children?: ReactNode;
+  popoverContent?: ReactNode;
+  popoverOpen?: boolean;
+  onPopoverOpenChange?: (open: boolean) => void;
 };
 
-export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
+// Backwards compatibility alias
+export type GanttFeatureItemCardProps = GanttTimelineBarCardProps;
+
+export const GanttTimelineBarCard: FC<GanttTimelineBarCardProps> = ({
   id,
   children,
+  popoverContent,
+  popoverOpen,
+  onPopoverOpenChange,
 }) => {
   const [, setDragging] = useGanttDragging();
   const { attributes, listeners, setNodeRef } = useDraggable({ id });
   const isPressed = Boolean(attributes['aria-pressed']);
+  const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
+  const hasDragged = useRef(false);
 
   // Set dragging on pointer down (before 10px threshold) to prevent add helper flash
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    pointerDownPos.current = { x: e.clientX, y: e.clientY };
+    hasDragged.current = false;
     setDragging(true);
     listeners?.onPointerDown?.(e as unknown as PointerEvent);
   }, [setDragging, listeners]);
+
+  // Track if we've actually dragged (moved more than a small threshold)
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (pointerDownPos.current && !hasDragged.current) {
+      const dx = Math.abs(e.clientX - pointerDownPos.current.x);
+      const dy = Math.abs(e.clientY - pointerDownPos.current.y);
+      if (dx > 5 || dy > 5) {
+        hasDragged.current = true;
+      }
+    }
+  }, []);
+
+  // Handle click - only open popover if we didn't drag
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if (!hasDragged.current && popoverContent && onPopoverOpenChange) {
+      e.stopPropagation();
+      onPopoverOpenChange(true);
+    }
+    pointerDownPos.current = null;
+  }, [popoverContent, onPopoverOpenChange]);
 
   // Clear dragging on pointer up if drag wasn't activated
   useEffect(() => {
@@ -134,7 +175,7 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
   // Also sync with isPressed for when drag is active
   useEffect(() => setDragging(isPressed), [isPressed, setDragging]);
 
-  return (
+  const cardContent = (
     <motion.div
       whileHover={{
         scale: 1.02,
@@ -155,6 +196,8 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
           {...attributes}
           {...listeners}
           onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onClick={handleClick}
           ref={setNodeRef}
         >
           {children}
@@ -162,13 +205,37 @@ export const GanttFeatureItemCard: FC<GanttFeatureItemCardProps> = ({
       </Card>
     </motion.div>
   );
+
+  // If popover content is provided, wrap in Popover
+  if (popoverContent) {
+    return (
+      <Popover open={popoverOpen} onOpenChange={onPopoverOpenChange}>
+        <PopoverTrigger asChild>
+          {cardContent}
+        </PopoverTrigger>
+        <PopoverContent
+          side="right"
+          align="start"
+          sideOffset={8}
+          className="w-80"
+        >
+          {popoverContent}
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  return cardContent;
 };
 
+// Backwards compatibility alias for the card component
+export const GanttFeatureItemCard = GanttTimelineBarCard;
+
 // ============================================
-// GanttFeatureItem - Main feature item component
+// GanttTimelineBar - Main timeline bar component
 // ============================================
 
-export type GanttFeatureItemProps = GanttFeature & {
+export type GanttTimelineBarProps = GanttTimelineBar & {
   onMove?: (id: string, startDate: Date, endDate: Date | null, targetRow?: number) => void;
   rowIndex?: number;
   visualRow?: number;
@@ -177,9 +244,13 @@ export type GanttFeatureItemProps = GanttFeature & {
   staggerIndex?: number;
   children?: ReactNode;
   className?: string;
+  popoverContent?: ReactNode;
 };
 
-export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
+// Backwards compatibility alias
+export type GanttFeatureItemProps = GanttTimelineBarProps;
+
+export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
   onMove,
   children,
   className,
@@ -188,6 +259,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   totalRows,
   groupName,
   staggerIndex = 0,
+  popoverContent,
   ...feature
 }) => {
   const [scrollX] = useGanttScrollX();
@@ -205,6 +277,7 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
   const [previousEndAt, setPreviousEndAt] = useState(endAt);
   const [verticalOffset, setVerticalOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   // Memoized calculations
   const timelineStartDate = useMemo(() => {
@@ -391,9 +464,9 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
             onDragMove={handleLeftDragMove}
             onDragEnd={onDragEnd}
           >
-            <GanttFeatureDragHelper
+            <GanttTimelineBarDragHelper
               direction="left"
-              featureId={feature.id}
+              timelineBarId={feature.id}
               date={startAt}
             />
           </DndContext>
@@ -405,11 +478,16 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
           onDragMove={handleItemDragMove}
           onDragEnd={onDragEnd}
         >
-          <GanttFeatureItemCard id={feature.id}>
+          <GanttTimelineBarCard
+            id={feature.id}
+            popoverContent={popoverContent}
+            popoverOpen={popoverOpen}
+            onPopoverOpenChange={setPopoverOpen}
+          >
             {children ?? (
               <p className="flex-1 truncate text-xs">{feature.name}</p>
             )}
-          </GanttFeatureItemCard>
+          </GanttTimelineBarCard>
         </DndContext>
         {onMove && (
           <DndContext
@@ -419,9 +497,9 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
             onDragMove={handleRightDragMove}
             onDragEnd={onDragEnd}
           >
-            <GanttFeatureDragHelper
+            <GanttTimelineBarDragHelper
               direction="right"
-              featureId={feature.id}
+              timelineBarId={feature.id}
               date={rightDragHelperDate}
             />
           </DndContext>
@@ -430,3 +508,6 @@ export const GanttFeatureItem: FC<GanttFeatureItemProps> = ({
     </div>
   );
 };
+
+// Backwards compatibility alias for the main component
+export const GanttFeatureItem = GanttTimelineBarItem;

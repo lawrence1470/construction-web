@@ -9,7 +9,7 @@ import {
 
 export interface GanttTaskColumnProps {
   groupedFeatures: Record<string, GanttFeature[]>;
-  onSelectItem: (id: string) => void;
+  onSelectItem?: (id: string) => void;
   isFullscreen?: boolean;
 }
 

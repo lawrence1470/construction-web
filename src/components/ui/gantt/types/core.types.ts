@@ -7,14 +7,18 @@ export type GanttStatus = {
   color: string;
 };
 
-export type GanttFeature = {
+export type GanttTimelineBar = {
   id: string;
   name: string;
   startAt: Date;
   endAt: Date;
   status: GanttStatus;
   group?: string;
+  coverImage?: string; // Base64 data URL or blob URL for cover image
 };
+
+// Backwards compatibility alias
+export type GanttFeature = GanttTimelineBar;
 
 export type GanttMarkerProps = {
   id: string;

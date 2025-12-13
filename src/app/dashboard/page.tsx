@@ -22,13 +22,7 @@ import {
 } from '@/components/ui/gantt';
 import GanttTaskColumn from '@/components/gantt/GanttTaskColumn';
 import AddTaskModal, { type NewTaskData } from '@/components/gantt/AddTaskModal';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
-import { EyeIcon, LinkIcon, TrashIcon } from 'lucide-react';
+import TimelineBarPopover from '@/components/gantt/TimelineBarPopover';
 
 // Zustand store imports
 import {
@@ -46,9 +40,6 @@ interface GanttFeatureRowProps {
   visualRow: number;
   totalRows: number;
   group: string;
-  onView: (id: string) => void;
-  onCopyLink: (id: string) => void;
-  onRemove: (id: string) => void;
   onMove: (id: string, startAt: Date, endAt: Date | null, targetRow?: number) => void;
 }
 
@@ -58,53 +49,24 @@ const GanttFeatureRow = memo(function GanttFeatureRow({
   visualRow,
   totalRows,
   group,
-  onView,
-  onCopyLink,
-  onRemove,
   onMove,
 }: GanttFeatureRowProps) {
+  const popoverContent = useMemo(
+    () => <TimelineBarPopover feature={feature} group={group} />,
+    [feature, group]
+  );
+
   return (
     <div className="flex relative overflow-visible">
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <button
-            type="button"
-            onClick={() => onView(feature.id)}
-          >
-            <GanttFeatureItem
-              onMove={onMove}
-              rowIndex={rowIndex}
-              visualRow={visualRow}
-              totalRows={totalRows}
-              groupName={group}
-              {...feature}
-            />
-          </button>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem
-            className="flex items-center gap-2"
-            onClick={() => onView(feature.id)}
-          >
-            <EyeIcon size={16} className="text-muted-foreground" />
-            View task
-          </ContextMenuItem>
-          <ContextMenuItem
-            className="flex items-center gap-2"
-            onClick={() => onCopyLink(feature.id)}
-          >
-            <LinkIcon size={16} className="text-muted-foreground" />
-            Copy link
-          </ContextMenuItem>
-          <ContextMenuItem
-            className="flex items-center gap-2 text-destructive"
-            onClick={() => onRemove(feature.id)}
-          >
-            <TrashIcon size={16} />
-            Remove from timeline
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+      <GanttFeatureItem
+        onMove={onMove}
+        rowIndex={rowIndex}
+        visualRow={visualRow}
+        totalRows={totalRows}
+        groupName={group}
+        popoverContent={popoverContent}
+        {...feature}
+      />
     </div>
   );
 });
@@ -115,7 +77,7 @@ export default function DashboardPage() {
 
   // Zustand state - features, groups, statuses from store
   const { grouped: groupedFeatures, flatList: allFeaturesWithIndex, totalRows } = useGroupedFeaturesWithRows();
-  const { add: addFeature, remove: removeFeature, move: moveFeature } = useFeatureActions();
+  const { add: addFeature, move: moveFeature } = useFeatureActions();
   const groups = useGroups();
   const statuses = useStatuses();
   const visualRowMap = useVisualRowMap();
@@ -140,21 +102,6 @@ export default function DashboardPage() {
   }, [session?.user?.name]);
 
   // Memoized callbacks to prevent unnecessary re-renders
-  const handleViewFeature = useCallback((id: string) => {
-    const featureEntry = allFeaturesWithIndex.find((f) => f.feature.id === id);
-    if (featureEntry) {
-      alert(`Task: ${featureEntry.feature.name}\nStatus: ${featureEntry.feature.status.name}`);
-    }
-  }, [allFeaturesWithIndex]);
-
-  const handleCopyLink = useCallback((id: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/task/${id}`);
-  }, []);
-
-  const handleRemoveFeature = useCallback((id: string) => {
-    removeFeature(id);
-  }, [removeFeature]);
-
   const handleMoveFeature = useCallback((
     id: string,
     startAt: Date,
@@ -262,7 +209,6 @@ export default function DashboardPage() {
           >
             <GanttTaskColumn
               groupedFeatures={groupedFeatures}
-              onSelectItem={handleViewFeature}
               isFullscreen={isFullscreen}
             />
             <GanttTimeline>
@@ -292,9 +238,6 @@ export default function DashboardPage() {
                             visualRow={visualRowMap[feature.id] ?? rowIndex}
                             totalRows={totalRows}
                             group={group}
-                            onView={handleViewFeature}
-                            onCopyLink={handleCopyLink}
-                            onRemove={handleRemoveFeature}
                             onMove={handleMoveFeature}
                           />
                         );
