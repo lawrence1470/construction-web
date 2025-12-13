@@ -44,12 +44,12 @@ export default function AddTaskModal({
   onAddTask,
 }: AddTaskModalProps) {
   const [name, setName] = useState('');
-  const [group, setGroup] = useState(groupNames[0] ?? '');
+  const [group, setGroup] = useState(groupNames[0] || '');
   const [startAt, setStartAt] = useState(format(defaultDate, 'yyyy-MM-dd'));
   const [endAt, setEndAt] = useState(format(addDays(defaultDate, 7), 'yyyy-MM-dd'));
   const [statusId, setStatusId] = useState('planned');
 
-  // Sync dates when modal opens with a new defaultDate
+  // Sync dates when modal opens
   useEffect(() => {
     if (open) {
       setStartAt(format(defaultDate, 'yyyy-MM-dd'));

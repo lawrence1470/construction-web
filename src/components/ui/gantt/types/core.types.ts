@@ -15,6 +15,7 @@ export type GanttTimelineBar = {
   status: GanttStatus;
   group?: string;
   coverImage?: string; // Base64 data URL or blob URL for cover image
+  progress?: number; // 0-100 percentage, auto-calculated if not set
 };
 
 // Backwards compatibility alias

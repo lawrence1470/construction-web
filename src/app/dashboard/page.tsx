@@ -41,6 +41,8 @@ interface GanttFeatureRowProps {
   totalRows: number;
   group: string;
   onMove: (id: string, startAt: Date, endAt: Date | null, targetRow?: number) => void;
+  onCoverImageChange: (featureId: string, coverImage: string | undefined) => void;
+  onDelete: (featureId: string) => void;
 }
 
 const GanttFeatureRow = memo(function GanttFeatureRow({
@@ -50,10 +52,12 @@ const GanttFeatureRow = memo(function GanttFeatureRow({
   totalRows,
   group,
   onMove,
+  onCoverImageChange,
+  onDelete,
 }: GanttFeatureRowProps) {
   const popoverContent = useMemo(
-    () => <TimelineBarPopover feature={feature} group={group} />,
-    [feature, group]
+    () => <TimelineBarPopover feature={feature} group={group} onCoverImageChange={onCoverImageChange} onDelete={onDelete} />,
+    [feature, group, onCoverImageChange, onDelete]
   );
 
   return (
@@ -77,7 +81,7 @@ export default function DashboardPage() {
 
   // Zustand state - features, groups, statuses from store
   const { grouped: groupedFeatures, flatList: allFeaturesWithIndex, totalRows } = useGroupedFeaturesWithRows();
-  const { add: addFeature, move: moveFeature } = useFeatureActions();
+  const { add: addFeature, move: moveFeature, update: updateFeature, remove: removeFeature } = useFeatureActions();
   const groups = useGroups();
   const statuses = useStatuses();
   const visualRowMap = useVisualRowMap();
@@ -116,6 +120,14 @@ export default function DashboardPage() {
     setSelectedDate(date);
     setAddTaskModalOpen(true);
   }, []);
+
+  const handleCoverImageChange = useCallback((featureId: string, coverImage: string | undefined) => {
+    updateFeature(featureId, { coverImage });
+  }, [updateFeature]);
+
+  const handleDeleteFeature = useCallback((featureId: string) => {
+    removeFeature(featureId);
+  }, [removeFeature]);
 
   const handleAddTask = useCallback((taskData: NewTaskData) => {
     // Get status from store, fallback to planned status
@@ -239,6 +251,8 @@ export default function DashboardPage() {
                             totalRows={totalRows}
                             group={group}
                             onMove={handleMoveFeature}
+                            onCoverImageChange={handleCoverImageChange}
+                            onDelete={handleDeleteFeature}
                           />
                         );
                       })}
