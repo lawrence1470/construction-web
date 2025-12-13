@@ -1,10 +1,11 @@
-// Gantt chart provider component with horizontal scrolling and timeline management
-// Extracted from components/ui/gantt.tsx
+// Gantt chart provider component with enhanced smooth scrolling
+// Option D: Enhanced scroll physics with momentum and smooth animations
 
 'use client';
 
 import { cn } from '@/lib/utils';
 import { differenceInMonths } from 'date-fns';
+import { motion } from 'framer-motion';
 import throttle from 'lodash.throttle';
 import {
   useCallback,
@@ -56,11 +57,24 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     createInitialTimelineData(new Date())
   );
   const [, setScrollX] = useGanttScrollX();
-  const [sidebarWidth, setSidebarWidth] = useState(300); // Default to 300, will update after mount
+  const [sidebarWidth, setSidebarWidth] = useState(300);
 
   // Scroll fade indicator states
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+
+  // Momentum scrolling state
+  const velocityRef = useRef(0);
+  const lastScrollTime = useRef(Date.now());
+  const lastScrollPos = useRef(0);
+  const momentumRef = useRef<number | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Custom scrollbar state
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [maxScrollX, setMaxScrollX] = useState(0);
+  const [isDraggingScrollbar, setIsDraggingScrollbar] = useState(false);
+  const [isHoveringScrollbar, setIsHoveringScrollbar] = useState(false);
 
   const headerHeight = 60;
   const rowHeight = 36;
@@ -88,7 +102,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       );
       setSidebarWidth(sidebarElement ? 300 : 0);
     }
-  }, [children]); // Re-check when children change
+  }, [children]);
 
   // Auto-scroll to today's position on mount
   useEffect(() => {
@@ -97,14 +111,10 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       const firstYear = timelineData[0]?.year ?? today.getFullYear();
       const timelineStart = new Date(firstYear, 0, 1);
 
-      // Calculate the offset in months from timeline start to today
       const monthsOffset = differenceInMonths(today, timelineStart);
-
-      // Calculate scroll position (subtract 1 month to show some context before today)
       const adjustedColumnWidth = (zoom / 100) * columnWidth;
       const scrollPosition = Math.max(0, (monthsOffset - 1) * adjustedColumnWidth);
 
-      // Scroll to today with a small delay to ensure DOM is ready
       setTimeout(() => {
         scrollRef.current?.scrollTo({
           left: scrollPosition,
@@ -114,44 +124,166 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     }
   }, [timelineData, zoom, columnWidth]);
 
-  // Update scroll fade indicators
-  const updateScrollIndicators = useCallback(() => {
+  // Update scroll indicators and progress
+  const updateScrollState = useCallback(() => {
     if (!scrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    const threshold = 10; // Small threshold for edge detection
+    const threshold = 10;
+    const max = scrollWidth - clientWidth;
+
     setCanScrollLeft(scrollLeft > threshold);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - threshold);
+    setCanScrollRight(scrollLeft < max - threshold);
+    setMaxScrollX(max);
+    setScrollProgress(max > 0 ? scrollLeft / max : 0);
   }, []);
 
-  // Track scroll position and update fade indicators - memoize the throttled function properly
+  // Momentum scrolling - apply physics after user releases scroll
+  const applyMomentum = useCallback(() => {
+    if (!scrollRef.current) return;
+
+    const friction = 0.95;
+    const minVelocity = 0.5;
+
+    const step = () => {
+      if (!scrollRef.current) return;
+
+      velocityRef.current *= friction;
+
+      if (Math.abs(velocityRef.current) < minVelocity) {
+        momentumRef.current = null;
+        return;
+      }
+
+      scrollRef.current.scrollLeft += velocityRef.current;
+      momentumRef.current = requestAnimationFrame(step);
+    };
+
+    momentumRef.current = requestAnimationFrame(step);
+  }, []);
+
+  // Enhanced wheel handler with momentum tracking
+  const handleWheel = useCallback((e: WheelEvent) => {
+    // Don't prevent default - let native scroll happen
+    // But track velocity for momentum
+
+    if (momentumRef.current) {
+      cancelAnimationFrame(momentumRef.current);
+      momentumRef.current = null;
+    }
+
+    const now = Date.now();
+    const dt = Math.max(1, now - lastScrollTime.current);
+
+    // Track horizontal velocity (including shift+scroll for horizontal)
+    const deltaX = e.shiftKey ? e.deltaY : e.deltaX;
+    velocityRef.current = deltaX / dt * 16; // Normalize to ~60fps
+
+    lastScrollTime.current = now;
+
+    // Start momentum after scroll stops
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (Math.abs(velocityRef.current) > 2) {
+        applyMomentum();
+      }
+    }, 50);
+  }, [applyMomentum]);
+
+  // Track scroll position - throttled for performance
   const handleScroll = useMemo(
     () =>
       throttle(() => {
-        if (!scrollRef.current) {
-          return;
+        if (!scrollRef.current) return;
+
+        const { scrollLeft } = scrollRef.current;
+        setScrollX(scrollLeft);
+        updateScrollState();
+
+        // Track position changes for velocity calculation
+        const now = Date.now();
+        const dt = Math.max(1, now - lastScrollTime.current);
+        const dx = scrollLeft - lastScrollPos.current;
+
+        if (!isDraggingScrollbar) {
+          velocityRef.current = dx / dt * 16;
         }
-        setScrollX(scrollRef.current.scrollLeft);
-        updateScrollIndicators();
-      }, 100),
-    [setScrollX, updateScrollIndicators]
+
+        lastScrollPos.current = scrollLeft;
+        lastScrollTime.current = now;
+      }, 16), // ~60fps throttle
+    [setScrollX, updateScrollState, isDraggingScrollbar]
   );
 
-  // Initialize scroll indicators on mount
+  // Initialize and cleanup
   useEffect(() => {
-    updateScrollIndicators();
-  }, [updateScrollIndicators, timelineData]);
+    updateScrollState();
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.addEventListener('scroll', handleScroll);
+    const element = scrollRef.current;
+    if (element) {
+      element.addEventListener('scroll', handleScroll, { passive: true });
+      element.addEventListener('wheel', handleWheel, { passive: true });
     }
 
     return () => {
-      if (scrollRef.current) {
-        scrollRef.current.removeEventListener('scroll', handleScroll);
+      if (element) {
+        element.removeEventListener('scroll', handleScroll);
+        element.removeEventListener('wheel', handleWheel);
+      }
+      if (momentumRef.current) {
+        cancelAnimationFrame(momentumRef.current);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [handleScroll]);
+  }, [handleScroll, handleWheel, updateScrollState]);
+
+  // Custom scrollbar drag handler
+  const handleScrollbarDrag = useCallback((clientX: number, trackElement: HTMLDivElement) => {
+    if (!scrollRef.current) return;
+
+    const rect = trackElement.getBoundingClientRect();
+    const relativeX = clientX - rect.left;
+    const progress = Math.max(0, Math.min(1, relativeX / rect.width));
+
+    scrollRef.current.scrollLeft = progress * maxScrollX;
+  }, [maxScrollX]);
+
+  // Scrollbar pointer handlers
+  const handleScrollbarPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingScrollbar(true);
+
+    // Cancel any momentum
+    if (momentumRef.current) {
+      cancelAnimationFrame(momentumRef.current);
+      momentumRef.current = null;
+    }
+
+    const track = e.currentTarget;
+    track.setPointerCapture(e.pointerId);
+    handleScrollbarDrag(e.clientX, track);
+  }, [handleScrollbarDrag]);
+
+  const handleScrollbarPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingScrollbar) return;
+    handleScrollbarDrag(e.clientX, e.currentTarget);
+  }, [isDraggingScrollbar, handleScrollbarDrag]);
+
+  const handleScrollbarPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDraggingScrollbar(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }, []);
+
+  // Calculate scrollbar thumb width
+  const viewportWidth = scrollRef.current?.clientWidth ?? 0;
+  const contentWidth = scrollRef.current?.scrollWidth ?? 0;
+  const thumbWidthPercent = contentWidth > 0
+    ? Math.max(10, (viewportWidth / contentWidth) * 100)
+    : 100;
+  const thumbLeftPercent = scrollProgress * (100 - thumbWidthPercent);
 
   return (
     <GanttContext.Provider
@@ -171,27 +303,34 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     >
       <div className="relative h-full w-full">
         {/* Scroll fade indicator - Left */}
-        <div
+        <motion.div
           className={cn(
-            'pointer-events-none absolute left-[var(--gantt-sidebar-width)] top-0 z-40 h-full w-16 transition-opacity duration-300',
-            'bg-gradient-to-r from-black/10 dark:from-black/30 to-transparent',
-            canScrollLeft ? 'opacity-100' : 'opacity-0'
+            'pointer-events-none absolute left-[var(--gantt-sidebar-width)] top-0 z-40 h-full w-16',
+            'bg-gradient-to-r from-black/10 dark:from-black/30 to-transparent'
           )}
           style={{ '--gantt-sidebar-width': `${sidebarWidth}px` } as CSSProperties}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: canScrollLeft ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
         />
 
         {/* Scroll fade indicator - Right */}
-        <div
+        <motion.div
           className={cn(
-            'pointer-events-none absolute right-0 top-0 z-40 h-full w-16 transition-opacity duration-300',
-            'bg-gradient-to-l from-black/10 dark:from-black/30 to-transparent',
-            canScrollRight ? 'opacity-100' : 'opacity-0'
+            'pointer-events-none absolute right-0 top-0 z-40 h-full w-16',
+            'bg-gradient-to-l from-black/10 dark:from-black/30 to-transparent'
           )}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: canScrollRight ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
         />
 
+        {/* Main scroll container */}
         <div
           className={cn(
             'gantt relative grid h-full w-full flex-none select-none overflow-auto rounded-sm bg-secondary',
+            // Hide native scrollbar with CSS
+            'scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]',
             range,
             className
           )}
@@ -203,6 +342,49 @@ export const GanttProvider: FC<GanttProviderProps> = ({
         >
           {children}
         </div>
+
+        {/* Custom horizontal scrollbar */}
+        {maxScrollX > 0 && (
+          <motion.div
+            className="absolute bottom-1 z-50 mx-2 h-2"
+            style={{ left: sidebarWidth, right: 4 }}
+            onMouseEnter={() => setIsHoveringScrollbar(true)}
+            onMouseLeave={() => setIsHoveringScrollbar(false)}
+            initial={{ opacity: 0.4 }}
+            animate={{
+              opacity: isHoveringScrollbar || isDraggingScrollbar ? 1 : 0.4,
+              height: isHoveringScrollbar || isDraggingScrollbar ? 10 : 8,
+            }}
+            transition={{ duration: 0.15 }}
+          >
+            {/* Track */}
+            <div
+              className="relative h-full w-full rounded-full bg-gray-300/50 dark:bg-gray-700/50 backdrop-blur-sm cursor-pointer"
+              onPointerDown={handleScrollbarPointerDown}
+              onPointerMove={handleScrollbarPointerMove}
+              onPointerUp={handleScrollbarPointerUp}
+              onPointerCancel={handleScrollbarPointerUp}
+            >
+              {/* Thumb */}
+              <motion.div
+                className={cn(
+                  'absolute top-0 h-full rounded-full transition-colors',
+                  isDraggingScrollbar
+                    ? 'bg-gray-600 dark:bg-gray-300'
+                    : 'bg-gray-400 dark:bg-gray-500 hover:bg-gray-500 dark:hover:bg-gray-400'
+                )}
+                style={{
+                  width: `${thumbWidthPercent}%`,
+                  left: `${thumbLeftPercent}%`,
+                }}
+                animate={{
+                  scale: isDraggingScrollbar ? 1.05 : 1,
+                }}
+                transition={{ duration: 0.1 }}
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
     </GanttContext.Provider>
   );
