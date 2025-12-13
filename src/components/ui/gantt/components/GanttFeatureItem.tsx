@@ -217,7 +217,7 @@ export const GanttTimelineBarCard: FC<GanttTimelineBarCardProps> = ({
           side="right"
           align="start"
           sideOffset={8}
-          className="w-80"
+          className="w-auto p-0"
         >
           {popoverContent}
         </PopoverContent>
