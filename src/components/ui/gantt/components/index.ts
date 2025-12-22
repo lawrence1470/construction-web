@@ -21,3 +21,6 @@ export { GanttStagingZone, type GanttStagingZoneProps } from './GanttStagingZone
 
 // Custom scrollbar component
 export { CustomScrollbar, type CustomScrollbarProps } from './CustomScrollbar';
+
+// Droppable row component for DnD targeting
+export { GanttDroppableRow, type GanttDroppableRowProps } from './GanttDroppableRow';

@@ -86,7 +86,7 @@ export default function DashboardPage() {
 
   // Zustand state - features, groups, statuses from store
   const { grouped: groupedFeatures, flatList: allFeaturesWithIndex, totalRows } = useGroupedFeaturesWithRows();
-  const { add: addFeature, move: moveFeature, update: updateFeature, remove: removeFeature } = useFeatureActions();
+  const { add: addFeature, move: moveFeature, update: updateFeature, remove: removeFeature, updateVisualRow } = useFeatureActions();
   const groups = useGroups();
   const statuses = useStatuses();
   const visualRowMap = useVisualRowMap();
@@ -184,20 +184,9 @@ export default function DashboardPage() {
 
   const handleStagedItemDrop = useCallback(
     (stagedTask: StagedTask, startAt: Date, endAt: Date, targetRow: number) => {
-      console.group('[Dashboard] Staged Item Drop Handler');
-      console.log('Staged task:', stagedTask);
-      console.log('Start at:', startAt.toISOString());
-      console.log('End at:', endAt.toISOString());
-      console.log('Target row:', targetRow);
-      console.log('All features with index:', allFeaturesWithIndex);
-
       // Find the group for the target row
       const targetFeature = allFeaturesWithIndex.find((f) => f.rowIndex === targetRow);
-      console.log('Target feature found:', targetFeature);
-
       const targetGroup = targetFeature?.group ?? groups[0] ?? 'Default';
-      console.log('Target group:', targetGroup);
-      console.log('Available groups:', groups);
 
       // Create a new feature from the staged task
       const newFeature: GanttFeature = {
@@ -208,16 +197,15 @@ export default function DashboardPage() {
         status: stagedTask.status,
         group: targetGroup,
       };
-      console.log('New feature to add:', newFeature);
 
       addFeature(newFeature);
-      console.log('Feature added');
+
+      // Set the visual row position so the task appears at the drop location
+      updateVisualRow(newFeature.id, targetRow);
 
       removeStagedTask(stagedTask.id);
-      console.log('Staged task removed');
-      console.groupEnd();
     },
-    [allFeaturesWithIndex, groups, addFeature, removeStagedTask]
+    [allFeaturesWithIndex, groups, addFeature, updateVisualRow, removeStagedTask]
   );
 
   return (
@@ -306,6 +294,7 @@ export default function DashboardPage() {
               <GanttRowGrid
                 totalRows={totalRows}
                 taskRowIndices={allFeaturesWithIndex.map(f => f.rowIndex)}
+                enableDroppableRows={true}
               />
               <GanttDropZoneIndicator />
               <GanttFeatureList>

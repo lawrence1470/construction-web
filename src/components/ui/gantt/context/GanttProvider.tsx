@@ -192,10 +192,6 @@ export const GanttProvider: FC<GanttProviderProps> = ({
   // Handle drag start from staging zone
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
-    console.group('[Staging] Drag Start');
-    console.log('Active ID:', active.id);
-    console.log('Active data:', active.data.current);
-    console.log('Is staged item:', typeof active.id === 'string' && active.id.startsWith('staged-'));
 
     // Reset the drop target ref at drag start
     lastValidDropRef.current = null;
@@ -203,13 +199,10 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     // Check if drag started from staging zone (ID starts with 'staged-')
     if (typeof active.id === 'string' && active.id.startsWith('staged-')) {
       const task = active.data.current?.task as StagedTask | undefined;
-      console.log('Staged task:', task);
       if (task) {
         setActiveDraggedTask(task);
-        console.log('Set active dragged task');
       }
     }
-    console.groupEnd();
   }, []);
 
   // Handle drag move - update drop target indicator in real-time
@@ -287,225 +280,84 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     });
   }, [columnWidth, headerHeight, rowHeight, scrollX, setDropTarget, sidebarWidth, zoom]);
 
-  // Handle drag end - calculate drop position based on mouse position in timeline
+  // Handle drag end - use dnd-kit's event.over for proper row targeting
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, activatorEvent } = event;
-    console.group('[Staging] Drag End - Deep Debug');
-    console.log('Active ID:', active.id);
+    const { active, over, activatorEvent } = event;
 
-    // *** CRITICAL: Read store value BEFORE clearing it ***
-    // This captures the exact drop target that was shown to the user
-    const storeDropTarget = useGanttUIStore.getState().dropTarget;
-    console.log('📍 Captured store dropTarget before clearing:', storeDropTarget);
-
+    // Clear drag state
     setActiveDraggedTask(null);
-    setDropTarget(null); // Clear the drop indicator
+    setDropTarget(null);
+    lastValidDropRef.current = null;
 
     // Only handle staged items being dropped
     if (typeof active.id !== 'string' || !active.id.startsWith('staged-')) {
-      console.log('Not a staged item, skipping');
-      console.groupEnd();
       return;
     }
 
     const task = active.data.current?.task as StagedTask | undefined;
-    console.log('Task:', task);
-    console.log('Has onStagedItemDrop:', !!onStagedItemDrop);
-    console.log('Has scrollRef.current:', !!scrollRef.current);
-
     if (!task || !onStagedItemDrop || !scrollRef.current) {
-      console.log('Missing required data, aborting');
-      console.groupEnd();
       return;
     }
 
-    // Get the current mouse position from the activator event
-    // For pointer events, we can get the final position from the event
+    // *** DEBUG: Calculate row using SAME logic as handleDragMove (manual calculation) ***
     const pointerEvent = activatorEvent as PointerEvent | MouseEvent | undefined;
-    if (!pointerEvent) {
-      console.log('No pointer event, aborting');
-      console.groupEnd();
-      return;
-    }
-
-    // Get container bounds
     const containerRect = scrollRef.current.getBoundingClientRect();
-
-    // DEBUG: Log all DOM element positions for clarity
-    console.group('📐 DOM Layout Analysis');
-    console.log('scrollRef (container):', {
-      top: containerRect.top,
-      left: containerRect.left,
-      width: containerRect.width,
-      height: containerRect.height,
-      bottom: containerRect.bottom,
-    });
-
-    // Find staging zone (should be ABOVE the container)
-    const stagingZone = document.querySelector('[data-staging-zone]');
-    if (stagingZone) {
-      const stagingRect = stagingZone.getBoundingClientRect();
-      console.log('Staging zone [data-staging-zone]:', {
-        top: stagingRect.top,
-        bottom: stagingRect.bottom,
-        height: stagingRect.height,
-        'containerRect.top - stagingRect.bottom': containerRect.top - stagingRect.bottom,
-        message: 'Gap between staging zone bottom and container top',
-      });
-    } else {
-      console.log('No staging zone found (enableStaging might be false)');
-    }
-
-    // Find actual row elements by looking for Gantt sidebar items
-    const sidebarItems = scrollRef.current.querySelectorAll('[data-roadmap-ui="gantt-sidebar"] > div:last-child > div > div:last-child > div');
-    console.log(`Found ${sidebarItems.length} potential sidebar rows`);
-
-    // Try to find items in the feature list area
-    const featureListItems = scrollRef.current.querySelectorAll('.absolute');
-    console.log(`Found ${featureListItems.length} absolutely positioned elements (potential feature items)`);
-
-    // Log the expected row boundaries based on headerHeight and rowHeight
-    console.log('Expected layout based on config:', {
-      headerHeight,
-      rowHeight,
-      'Row 0 start (from container top)': headerHeight,
-      'Row 1 start (from container top)': headerHeight + rowHeight,
-      'Row 2 start (from container top)': headerHeight + (2 * rowHeight),
-      'Row 3 start (from container top)': headerHeight + (3 * rowHeight),
-    });
-    console.groupEnd();
-
-    // Calculate mouse position relative to the timeline area
-    // Use the delta to calculate final position
     const delta = event.delta;
+
+    let manualCalcRow: number | undefined;
+    if (pointerEvent) {
+      const initialY = (pointerEvent as PointerEvent).clientY ?? 0;
+      const currentY = initialY + delta.y;
+      const scrollTop = scrollRef.current.scrollTop;
+      const positionInContainer = currentY - containerRect.top;
+      const timelineY = positionInContainer - headerHeight + scrollTop;
+      manualCalcRow = Math.max(0, Math.floor(timelineY / rowHeight));
+    }
+
+    // *** KEY: Use event.over from dnd-kit's collision detection ***
+    // This is the proper DnD way - dnd-kit handles all the coordinate math
+    let dndKitRow: number | undefined;
+
+    if (over) {
+      // Parse row index from droppable ID (format: "droppable-row-{index}")
+      const overId = String(over.id);
+      if (overId.startsWith('droppable-row-')) {
+        dndKitRow = parseInt(overId.replace('droppable-row-', ''), 10);
+      } else if (over.data.current?.rowIndex !== undefined) {
+        // Fallback: check droppable data
+        dndKitRow = over.data.current.rowIndex;
+      }
+    }
+
+    // If no valid droppable row was detected, cancel the drop
+    if (dndKitRow === undefined) {
+      return;
+    }
+
+    // Calculate timeline X position for date snapping
+    // We still need mouse position for horizontal date calculation
+    if (!pointerEvent) {
+      return;
+    }
+
     const initialX = (pointerEvent as PointerEvent).clientX ?? 0;
-    const initialY = (pointerEvent as PointerEvent).clientY ?? 0;
     const finalX = initialX + delta.x;
-    const finalY = initialY + delta.y;
-
-    console.group('🖱️ Mouse Position Calculation');
-    console.log('Initial position (drag start):', { initialX, initialY });
-    console.log('Delta (movement):', delta);
-    console.log('Final position (drop):', { finalX, finalY });
-    console.groupEnd();
-
-    console.group('📊 Coordinate Calculation');
-    // Calculate position relative to the timeline (accounting for sidebar and scroll)
     const timelineX = finalX - containerRect.left - sidebarWidth + scrollX;
-    console.log('timelineX calculation:', {
-      finalX,
-      'containerRect.left': containerRect.left,
-      sidebarWidth,
-      scrollX,
-      formula: 'finalX - containerRect.left - sidebarWidth + scrollX',
-      result: timelineX,
-    });
 
-    // Key insight: The scroll container (scrollRef) starts BELOW the staging zone
-    // because staging zone is rendered above it in the DOM (lines 456-458)
-    // So containerRect.top is already AFTER the staging zone
-    // We only need to subtract the header which is INSIDE the scroll container
-    // ALSO: Account for vertical scroll position (scrollTop)
-    const scrollTop = scrollRef.current.scrollTop;
-    const positionInContainer = finalY - containerRect.top;
-    const timelineY = positionInContainer - headerHeight + scrollTop;
-
-    console.log('timelineY calculation:', {
-      finalY,
-      'containerRect.top': containerRect.top,
-      'positionInContainer': positionInContainer,
-      headerHeight,
-      scrollTop,
-      formula: '(finalY - containerRect.top) - headerHeight + scrollTop',
-      result: timelineY,
-    });
-
-    // Check if drop is outside the timeline area (above header or outside container)
-    // If timelineY is negative, the drop is in the header or above the container
-    if (timelineY < 0) {
-      console.log('❌ Drop cancelled: position is above the timeline rows (timelineY < 0)');
-      console.log('   Keeping task in staging zone');
-      console.groupEnd();
-      return;
-    }
-
-    // Also check if the drop is outside the container horizontally or vertically
-    if (finalY < containerRect.top || finalY > containerRect.bottom ||
-        finalX < containerRect.left || finalX > containerRect.right) {
-      console.log('❌ Drop cancelled: position is outside the container bounds');
-      console.log('   Keeping task in staging zone');
-      console.groupEnd();
-      return;
-    }
-
-    // *** KEY FIX: Use storeDropTarget captured at the START of handleDragEnd ***
-    // We captured it before calling setDropTarget(null), so it has the exact value
-    // that was shown to the user in the visual indicator
-
-    // Fallback to ref if store was null (edge case)
-    const savedDropInfo = lastValidDropRef.current;
-
-    // Priority: Zustand store > ref > calculated
-    const targetRow = storeDropTarget?.rowIndex
-      ?? savedDropInfo?.targetRow
-      ?? Math.max(0, Math.floor(timelineY / rowHeight));
-    const finalTimelineX = storeDropTarget?.offset
-      ?? savedDropInfo?.timelineX
-      ?? timelineX;
-
-    console.log('🎯 Drop Position Resolution:', {
-      'From Zustand store (visual indicator source)': storeDropTarget,
-      'From handleDragMove ref (backup)': savedDropInfo,
-      'Fallback calculated row': Math.floor(timelineY / rowHeight),
-      'Fallback calculated timelineX': timelineX,
-      'FINAL targetRow': targetRow,
-      'FINAL timelineX': finalTimelineX,
-      'Source used': storeDropTarget ? 'ZUSTAND_STORE' : savedDropInfo ? 'REF' : 'CALCULATED',
-    });
-
-    // Clear the ref now that we've used it
-    lastValidDropRef.current = null;
-    console.groupEnd();
-
-    // Additional sanity check: log what row heights would mean
-    console.group('🎯 Row Position Reference');
-    console.log('Expected row positions from container top:');
-    for (let i = 0; i < 5; i++) {
-      const rowTop = headerHeight + (i * rowHeight);
-      const rowBottom = rowTop + rowHeight;
-      console.log(`  Row ${i}: ${rowTop}px - ${rowBottom}px (relative to scroll container)`);
-    }
-    console.log(`Mouse positionInContainer: ${positionInContainer}px`);
-    console.log(`Mouse timelineY (after header): ${timelineY}px`);
-    console.groupEnd();
-
-    // Snap to full month boundaries (1st to last day of the month)
-    // Use the finalTimelineX from the ref to ensure date matches what user saw
+    // Snap to full month boundaries
     const { startAt: newStartAt, endAt: newEndAt } = getMonthBoundsByMousePosition(
       { timelineData, columnWidth, zoom, range },
-      finalTimelineX
+      timelineX
     );
-    console.log('Snapped to month:', {
-      startAt: newStartAt.toISOString(),
-      endAt: newEndAt.toISOString(),
+
+    console.log('[Staging] Drop complete:', {
+      taskId: task.id,
+      targetRow: dndKitRow,
       month: newStartAt.toLocaleString('default', { month: 'long', year: 'numeric' }),
     });
 
-    console.log('Valid drop rows:', validDropRows);
-
-    // Call the callback with the calculated values
-    console.log('✅ Calling onStagedItemDrop:', {
-      taskId: task.id,
-      taskName: task.name,
-      newStartAt: newStartAt.toISOString(),
-      newEndAt: newEndAt.toISOString(),
-      targetRow,
-    });
-
-    onStagedItemDrop(task, newStartAt, newEndAt, targetRow);
-    console.log('Drop complete');
-    console.groupEnd();
-  }, [onStagedItemDrop, columnWidth, zoom, rowHeight, validDropRows, sidebarWidth, headerHeight, scrollX, timelineData, range, setDropTarget]);
+    onStagedItemDrop(task, newStartAt, newEndAt, dndKitRow);
+  }, [onStagedItemDrop, columnWidth, zoom, sidebarWidth, scrollX, timelineData, range, setDropTarget, headerHeight, rowHeight]);
 
   return (
     <GanttContext.Provider

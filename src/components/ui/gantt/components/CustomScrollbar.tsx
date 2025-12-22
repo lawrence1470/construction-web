@@ -255,10 +255,10 @@ export const CustomScrollbar: FC<CustomScrollbarProps> = ({
       const el = scrollRef.current;
       if (!el) return;
 
-      const viewport = axis === 'x' ? el.clientWidth : el.clientHeight;
-      const content = axis === 'x' ? el.scrollWidth : el.scrollHeight;
       const currentScroll = axis === 'x' ? el.scrollLeft : el.scrollTop;
-      const maxScroll = content - viewport;
+      const maxScroll = axis === 'x'
+        ? el.scrollWidth - el.clientWidth
+        : el.scrollHeight - el.clientHeight;
 
       const delta = direction === 'start' ? -scrollStep : scrollStep;
       const newScroll = Math.max(0, Math.min(maxScroll, currentScroll + delta));
@@ -332,8 +332,7 @@ export const CustomScrollbar: FC<CustomScrollbarProps> = ({
     'hover:text-gray-600 dark:hover:text-gray-300',
     'hover:bg-gray-200/50 dark:hover:bg-gray-700/50',
     'active:scale-90 active:bg-gray-300/50 dark:active:bg-gray-600/50',
-    'select-none cursor-pointer',
-    axis === 'x' ? 'w-3 h-3' : 'w-3 h-3'
+    'select-none cursor-pointer w-3 h-3'
   );
 
   const iconSize = 10;

@@ -48,6 +48,9 @@ import {
   useGanttDropTarget,
 } from './gantt/context';
 
+// Import components
+import { GanttDroppableRow } from './gantt/components';
+
 // Import extracted components
 import {
   // New TimelineBar naming
@@ -684,9 +687,15 @@ export type GanttRowGridProps = {
   totalRows: number;
   taskRowIndices?: number[]; // Row indices that are actual tasks (not group headers)
   className?: string;
+  enableDroppableRows?: boolean; // Enable dnd-kit droppable zones for each row
 };
 
-export const GanttRowGrid: FC<GanttRowGridProps> = ({ totalRows, taskRowIndices, className }) => {
+export const GanttRowGrid: FC<GanttRowGridProps> = ({
+  totalRows,
+  taskRowIndices,
+  className,
+  enableDroppableRows = false,
+}) => {
   const gantt = useContext(GanttContext);
   const id = useId();
 
@@ -695,16 +704,28 @@ export const GanttRowGrid: FC<GanttRowGridProps> = ({ totalRows, taskRowIndices,
 
   return (
     <div
-      className={cn('absolute top-0 left-0 w-full pointer-events-none', className)}
+      className={cn('absolute top-0 left-0 w-full', className)}
       style={{
         marginTop: 'var(--gantt-header-height)',
         height: `calc(${totalRows} * var(--gantt-row-height))`,
+        // Allow pointer events for droppable rows, but keep visual dividers non-interactive
+        pointerEvents: enableDroppableRows ? 'auto' : 'none',
       }}
     >
+      {/* Droppable row zones - only rendered when enableDroppableRows is true */}
+      {enableDroppableRows && rowsToRender.map((rowIndex) => (
+        <GanttDroppableRow
+          key={`${id}-droppable-row-${rowIndex}`}
+          rowIndex={rowIndex}
+          rowHeight={gantt.rowHeight}
+        />
+      ))}
+
+      {/* Visual row dividers - always rendered */}
       {rowsToRender.map((rowIndex) => (
         <div
           key={`${id}-row-${rowIndex}`}
-          className="absolute left-0 w-full border-b border-gray-200 dark:border-[var(--border-color)]"
+          className="absolute left-0 w-full border-b border-gray-200 dark:border-[var(--border-color)] pointer-events-none"
           style={{
             top: `calc(${rowIndex + 1} * var(--gantt-row-height))`,
           }}
