@@ -8,7 +8,7 @@ import {
   useSensor,
 } from '@dnd-kit/core';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-import { useMouse } from '@uidotdev/usehooks';
+import { useThrottledMouse } from '../hooks/useThrottledMouse';
 import { addDays } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
@@ -54,7 +54,7 @@ export const GanttTimelineBarDragHelper: FC<GanttTimelineBarDragHelperProps> = (
 }) => {
   const [, setDragging] = useGanttDragging();
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: `timeline-bar-drag-helper-${timelineBarId}`,
+    id: `timeline-bar-drag-helper-${direction}-${timelineBarId}`,
   });
 
   const isPressed = Boolean(attributes['aria-pressed']);
@@ -176,16 +176,12 @@ export const GanttTimelineBarCard: FC<GanttTimelineBarCardProps> = ({
   useEffect(() => setDragging(isPressed), [isPressed, setDragging]);
 
   const cardContent = (
-    <motion.div
-      whileHover={{
-        scale: 1.02,
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        transition: { duration: 0.2 }
-      }}
-      whileTap={{ scale: 0.98 }}
-    >
+    <div className="gantt-card-hover-wrapper">
       <Card className={cn(
-        'h-full w-full rounded-md bg-white dark:bg-[var(--bg-card)] p-2 text-xs shadow-sm transition-colors',
+        'h-full w-full rounded-md bg-white dark:bg-[var(--bg-card)] p-2 text-xs shadow-sm',
+        'transition-all duration-200 ease-out',
+        'hover:scale-[1.02] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]',
+        'active:scale-[0.98]',
         isPressed && 'bg-gray-50 dark:bg-[var(--bg-hover)]'
       )}>
         <div
@@ -203,7 +199,7 @@ export const GanttTimelineBarCard: FC<GanttTimelineBarCardProps> = ({
           {children}
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 
   // If popover content is provided, wrap in Popover
@@ -266,7 +262,7 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
   const [, setDropTarget] = useGanttDropTarget();
   const [, setGlobalDragging] = useGanttDragging();
   const gantt = useContext(GanttContext);
-  const [mousePosition] = useMouse<HTMLDivElement>();
+  const [mousePosition] = useThrottledMouse<HTMLDivElement>();
 
   // State
   const [startAt, setStartAt] = useState<Date>(feature.startAt);
@@ -435,49 +431,59 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
 
   return (
     <div
+      data-feature-item
+      data-feature-id={feature.id}
+      data-feature-row={rowIndex}
       className={cn('relative flex w-max min-w-full py-0.5', className)}
       style={{ height: 'var(--gantt-row-height)' }}
     >
-      <motion.div
-        className="pointer-events-auto absolute top-0.5"
-        style={{
-          height: 'calc(var(--gantt-row-height) - 4px)',
-          width: Math.round(width),
-          left: Math.round(offset),
-          zIndex: isDragging ? 50 : 1,
+      <DndContext
+        id={`dnd-unified-${feature.id}`}
+        sensors={[mouseSensor]}
+        onDragStart={(event) => {
+          const activeId = String(event.active.id);
+          // Only trigger item drag start for card drags, not resize handles
+          if (activeId === feature.id) {
+            handleItemDragStart();
+          }
         }}
-        initial={false}
-        animate={{
-          y: totalVerticalOffset,
-          scale: isDragging ? 1.02 : 1,
+        onDragMove={(event) => {
+          const activeId = String(event.active.id);
+          if (activeId === `timeline-bar-drag-helper-left-${feature.id}`) {
+            handleLeftDragMove();
+          } else if (activeId === `timeline-bar-drag-helper-right-${feature.id}`) {
+            handleRightDragMove();
+          } else if (activeId === feature.id) {
+            handleItemDragMove();
+          }
         }}
-        transition={{
-          y: { duration: isDragging ? 0 : 0.2, ease: 'easeOut' },
-          scale: { type: 'spring', stiffness: 300, damping: 25 }
-        }}
+        onDragEnd={onDragEnd}
       >
-        {onMove && (
-          <DndContext
-            id={`dnd-left-${feature.id}`}
-            sensors={[mouseSensor]}
-            modifiers={[restrictToHorizontalAxis]}
-            onDragMove={handleLeftDragMove}
-            onDragEnd={onDragEnd}
-          >
+        <motion.div
+          className="pointer-events-auto absolute top-0.5"
+          style={{
+            height: 'calc(var(--gantt-row-height) - 4px)',
+            width: Math.round(width),
+            left: Math.round(offset),
+            zIndex: isDragging ? 50 : 1,
+          }}
+          initial={false}
+          animate={{
+            y: totalVerticalOffset,
+            scale: isDragging ? 1.02 : 1,
+          }}
+          transition={{
+            y: { duration: isDragging ? 0 : 0.2, ease: 'easeOut' },
+            scale: { type: 'spring', stiffness: 300, damping: 25 }
+          }}
+        >
+          {onMove && (
             <GanttTimelineBarDragHelper
               direction="left"
               timelineBarId={feature.id}
               date={startAt}
             />
-          </DndContext>
-        )}
-        <DndContext
-          id={`dnd-item-${feature.id}`}
-          sensors={[mouseSensor]}
-          onDragStart={handleItemDragStart}
-          onDragMove={handleItemDragMove}
-          onDragEnd={onDragEnd}
-        >
+          )}
           <GanttTimelineBarCard
             id={feature.id}
             popoverContent={popoverContent}
@@ -488,23 +494,15 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
               <p className="flex-1 truncate text-xs">{feature.name}</p>
             )}
           </GanttTimelineBarCard>
-        </DndContext>
-        {onMove && (
-          <DndContext
-            id={`dnd-right-${feature.id}`}
-            sensors={[mouseSensor]}
-            modifiers={[restrictToHorizontalAxis]}
-            onDragMove={handleRightDragMove}
-            onDragEnd={onDragEnd}
-          >
+          {onMove && (
             <GanttTimelineBarDragHelper
               direction="right"
               timelineBarId={feature.id}
               date={rightDragHelperDate}
             />
-          </DndContext>
-        )}
-      </motion.div>
+          )}
+        </motion.div>
+      </DndContext>
     </div>
   );
 };

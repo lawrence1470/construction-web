@@ -32,6 +32,11 @@ import {
   useStatuses,
   useVisualRowMap,
 } from '@/store/hooks';
+import {
+  useStagedTasks,
+  useStagingActions,
+  type StagedTask,
+} from '@/store/useStagingStore';
 
 // Memoized feature row component to prevent unnecessary re-renders
 interface GanttFeatureRowProps {
@@ -85,6 +90,10 @@ export default function DashboardPage() {
   const groups = useGroups();
   const statuses = useStatuses();
   const visualRowMap = useVisualRowMap();
+
+  // Staging zone state
+  const stagedTasks = useStagedTasks();
+  const { addStagedTask, removeStagedTask } = useStagingActions();
 
   // Local UI state - stays as useState
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -145,6 +154,71 @@ export default function DashboardPage() {
 
     addFeature(newFeature);
   }, [statuses, addFeature]);
+
+  // Handler for adding tasks directly from month header buttons (Option A)
+  const handleAddToMonth = useCallback((startAt: Date, endAt: Date) => {
+    const plannedStatus = statuses['planned'];
+    if (!plannedStatus) return;
+
+    // Create a new task spanning the full month
+    const newFeature: GanttFeature = {
+      id: `task-${Date.now()}`,
+      name: 'New Task',
+      startAt,
+      endAt,
+      status: plannedStatus,
+      group: groups[0] ?? 'Default',
+    };
+
+    addFeature(newFeature);
+  }, [statuses, groups, addFeature]);
+
+  // Staging zone handlers
+  const handleQuickAdd = useCallback(() => {
+    // Get a visible date (current date or start of timeline)
+    const visibleDate = new Date();
+    const plannedStatus = statuses['planned'];
+    if (!plannedStatus) return; // Safety check
+    addStagedTask(visibleDate, plannedStatus);
+  }, [addStagedTask, statuses]);
+
+  const handleStagedItemDrop = useCallback(
+    (stagedTask: StagedTask, startAt: Date, endAt: Date, targetRow: number) => {
+      console.group('[Dashboard] Staged Item Drop Handler');
+      console.log('Staged task:', stagedTask);
+      console.log('Start at:', startAt.toISOString());
+      console.log('End at:', endAt.toISOString());
+      console.log('Target row:', targetRow);
+      console.log('All features with index:', allFeaturesWithIndex);
+
+      // Find the group for the target row
+      const targetFeature = allFeaturesWithIndex.find((f) => f.rowIndex === targetRow);
+      console.log('Target feature found:', targetFeature);
+
+      const targetGroup = targetFeature?.group ?? groups[0] ?? 'Default';
+      console.log('Target group:', targetGroup);
+      console.log('Available groups:', groups);
+
+      // Create a new feature from the staged task
+      const newFeature: GanttFeature = {
+        id: `task-${Date.now()}`,
+        name: stagedTask.name,
+        startAt,
+        endAt,
+        status: stagedTask.status,
+        group: targetGroup,
+      };
+      console.log('New feature to add:', newFeature);
+
+      addFeature(newFeature);
+      console.log('Feature added');
+
+      removeStagedTask(stagedTask.id);
+      console.log('Staged task removed');
+      console.groupEnd();
+    },
+    [allFeaturesWithIndex, groups, addFeature, removeStagedTask]
+  );
 
   return (
     <LayoutWrapper>
@@ -218,13 +292,17 @@ export default function DashboardPage() {
             zoom={100}
             validDropRows={allFeaturesWithIndex.map(f => f.rowIndex)}
             className="h-full border rounded-2xl"
+            enableStaging={true}
+            onStagedItemDrop={handleStagedItemDrop}
           >
             <GanttTaskColumn
               groupedFeatures={groupedFeatures}
               isFullscreen={isFullscreen}
+              stagedTasks={stagedTasks}
+              onQuickAdd={handleQuickAdd}
             />
             <GanttTimeline>
-              <GanttHeader />
+              <GanttHeader onAddToMonth={handleAddToMonth} />
               <GanttRowGrid
                 totalRows={totalRows}
                 taskRowIndices={allFeaturesWithIndex.map(f => f.rowIndex)}

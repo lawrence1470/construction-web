@@ -52,6 +52,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.0.15",
     "@types/lodash.throttle": "^4.1.9",
     "@types/node": "^20.14.10",

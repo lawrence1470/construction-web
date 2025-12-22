@@ -76,7 +76,10 @@ export const getAddRange = (range: Range) => {
   return fn;
 };
 
-export const getDateByMousePosition = (context: GanttContextProps, mouseX: number) => {
+export const getDateByMousePosition = (
+  context: Pick<GanttContextProps, 'timelineData' | 'columnWidth' | 'zoom' | 'range'>,
+  mouseX: number
+) => {
   const firstTimelineData = context.timelineData[0];
   if (!firstTimelineData) return new Date();
   const timelineStartDate = new Date(firstTimelineData.year, 0, 1);
@@ -91,6 +94,30 @@ export const getDateByMousePosition = (context: GanttContextProps, mouseX: numbe
   const actualDate = addDays(month, dayOffset);
 
   return actualDate;
+};
+
+// Get the month boundaries (1st to last day) for a position on the timeline
+// Used for snap-to-month drop behavior
+export const getMonthBoundsByMousePosition = (
+  context: Pick<GanttContextProps, 'timelineData' | 'columnWidth' | 'zoom' | 'range'>,
+  mouseX: number
+): { startAt: Date; endAt: Date } => {
+  const firstTimelineData = context.timelineData[0];
+  if (!firstTimelineData) {
+    const now = new Date();
+    return { startAt: startOfMonth(now), endAt: endOfMonth(now) };
+  }
+
+  const timelineStartDate = new Date(firstTimelineData.year, 0, 1);
+  const columnWidth = (context.columnWidth * context.zoom) / 100;
+  const offset = Math.floor(mouseX / columnWidth);
+  const addRange = getAddRange(context.range);
+  const month = addRange(timelineStartDate, offset);
+
+  return {
+    startAt: startOfMonth(month),
+    endAt: endOfMonth(month),
+  };
 };
 
 export const createInitialTimelineData = (today: Date) => {

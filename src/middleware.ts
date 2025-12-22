@@ -9,6 +9,12 @@ export function middleware(request: NextRequest) {
   const isApiRoute = pathname.startsWith("/api");
   const isLandingPage = pathname === "/";
 
+  // Bypass auth for E2E tests (only in development/test environments)
+  const isTestBypass = request.headers.get("x-playwright-test") === "true";
+  if (isTestBypass && process.env.NODE_ENV !== "production") {
+    return NextResponse.next();
+  }
+
   // Allow API routes without authentication check
   if (isApiRoute) {
     return NextResponse.next();

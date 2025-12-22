@@ -83,6 +83,7 @@ body {
 
 /* ============================================
    Gantt Chart Custom Scrollbar Styles
+   Native scroll physics + gutter-based custom scrollbars
    ============================================ */
 
 /* Hide native scrollbar - using custom scrollbar component */
@@ -98,11 +99,11 @@ body {
   scrollbar-width: none;
 }
 
-/* Smooth scrolling with momentum */
+/* Native smooth scrolling - browser handles momentum physics */
 .gantt {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
+  overscroll-behavior: contain;
 }
 
 /* Scroll snap for month columns */

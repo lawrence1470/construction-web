@@ -16,6 +16,7 @@ import {
   useId,
   useState,
   useEffect,
+  memo,
 } from 'react';
 import type {
   FC,
@@ -57,6 +58,8 @@ import {
   GanttFeatureItem,
   GanttFeatureItemCard,
   GanttFeatureDragHelper,
+  // Staging zone components
+  GanttStagingZone,
 } from './gantt/components';
 
 // Re-export types (new TimelineBar naming + backwards compatibility)
@@ -86,6 +89,8 @@ export {
   GanttFeatureItem,
   GanttFeatureItemCard,
   GanttFeatureDragHelper,
+  // Staging zone components
+  GanttStagingZone,
 } from './gantt/components';
 export type {
   // New TimelineBar types
@@ -96,6 +101,8 @@ export type {
   GanttFeatureItemProps,
   GanttFeatureItemCardProps,
   GanttFeatureDragHelperProps,
+  // Staging zone types
+  GanttStagingZoneProps,
 } from './gantt/components';
 
 export type GanttContentHeaderProps = {
@@ -183,17 +190,56 @@ const DailyHeader: FC = () => {
   );
 };
 
-const MonthlyHeader: FC = () => {
+// Props for the enhanced monthly header with inline add buttons
+export type GanttMonthlyHeaderProps = {
+  onAddToMonth?: (startAt: Date, endAt: Date) => void;
+};
+
+const MonthlyHeader: FC<GanttMonthlyHeaderProps> = ({ onAddToMonth }) => {
   const gantt = useContext(GanttContext);
+  const [hoveredMonth, setHoveredMonth] = useState<number | null>(null);
 
   return gantt.timelineData.map((year) => (
     <div className="relative flex flex-col" key={year.year}>
       <GanttContentHeader
         title={`${year.year}`}
         columns={year.quarters.flatMap((quarter) => quarter.months).length}
-        renderHeaderItem={(item: number) => (
-          <p>{format(new Date(year.year, item, 1), 'MMM')}</p>
-        )}
+        renderHeaderItem={(item: number) => {
+          const monthDate = new Date(year.year, item, 1);
+          const monthEnd = new Date(year.year, item + 1, 0); // Last day of month
+          const isHovered = hoveredMonth === item;
+
+          return (
+            <div
+              className="relative flex items-center justify-center gap-1 group"
+              onMouseEnter={() => setHoveredMonth(item)}
+              onMouseLeave={() => setHoveredMonth(null)}
+            >
+              <p>{format(monthDate, 'MMM')}</p>
+              {onAddToMonth && (
+                <motion.button
+                  type="button"
+                  className="absolute right-1 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToMonth(monthDate, monthEnd);
+                  }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{
+                    opacity: isHovered ? 1 : 0,
+                    scale: isHovered ? 1 : 0.8,
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.15 }}
+                  title={`Add task to ${format(monthDate, 'MMMM yyyy')}`}
+                >
+                  <PlusIcon size={12} className="text-blue-600 dark:text-blue-400" />
+                </motion.button>
+              )}
+            </div>
+          );
+        }}
       />
       <GanttColumns
         columns={year.quarters.flatMap((quarter) => quarter.months).length}
@@ -226,17 +272,19 @@ const QuarterlyHeader: FC = () => {
   );
 };
 
-const headers: Record<Range, FC> = {
-  daily: DailyHeader,
+// Headers now accept optional props for inline add functionality
+const headers: Record<Range, FC<GanttMonthlyHeaderProps>> = {
+  daily: DailyHeader as FC<GanttMonthlyHeaderProps>,
   monthly: MonthlyHeader,
-  quarterly: QuarterlyHeader,
+  quarterly: QuarterlyHeader as FC<GanttMonthlyHeaderProps>,
 };
 
 export type GanttHeaderProps = {
   className?: string;
+  onAddToMonth?: (startAt: Date, endAt: Date) => void;
 };
 
-export const GanttHeader: FC<GanttHeaderProps> = ({ className }) => {
+export const GanttHeader: FC<GanttHeaderProps> = ({ className, onAddToMonth }) => {
   const gantt = useContext(GanttContext);
   const Header = headers[gantt.range];
 
@@ -247,7 +295,7 @@ export const GanttHeader: FC<GanttHeaderProps> = ({ className }) => {
         className
       )}
     >
-      <Header />
+      <Header onAddToMonth={onAddToMonth} />
     </div>
   );
 };
@@ -259,7 +307,7 @@ export type GanttSidebarItemProps = {
   isFullscreen?: boolean;
 };
 
-export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
+export const GanttSidebarItem: FC<GanttSidebarItemProps> = memo(({
   feature,
   onSelectItem,
   className,
@@ -286,42 +334,38 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
   };
 
   return (
-    <motion.div
+    <div
       // biome-ignore lint/a11y/useSemanticElements: <explanation>
       role="button"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      key={feature.id}
       className={cn(
         'relative flex items-center gap-2.5 p-2.5 text-xs cursor-pointer',
+        'transition-all duration-150 ease-out',
+        'hover:bg-[var(--gantt-hover-bg,rgba(243,244,246,0.8))] dark:hover:bg-gray-700/50',
+        'active:scale-[0.98]',
         isFullscreen && 'flex-1',
         className
       )}
       style={isFullscreen ? undefined : {
         height: 'var(--gantt-row-height)',
       }}
-      whileHover={{
-        backgroundColor: 'var(--gantt-hover-bg, rgba(243, 244, 246, 0.8))',
-        transition: { duration: 0.15 }
-      }}
-      whileTap={{ scale: 0.98 }}
     >
-      <motion.div
-        className="pointer-events-none h-2 w-2 shrink-0 rounded-full"
+      <div
+        className="pointer-events-none h-2 w-2 shrink-0 rounded-full transition-transform duration-150 hover:scale-[1.3]"
         style={{
           backgroundColor: feature.status.color,
         }}
-        whileHover={{ scale: 1.3 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       />
       <p className="pointer-events-none flex-1 truncate text-left font-medium text-gray-800 dark:text-[var(--text-primary)]">
         {feature.name}
       </p>
       <p className="pointer-events-none text-gray-500 dark:text-[var(--text-tertiary)]">{duration}</p>
-    </motion.div>
+    </div>
   );
-};
+});
+GanttSidebarItem.displayName = 'GanttSidebarItem';
 
 export const GanttSidebarHeader: FC = () => (
   <div
@@ -588,6 +632,8 @@ export const GanttDropZoneIndicator: FC<GanttDropZoneIndicatorProps> = ({
     <AnimatePresence>
       {dropTarget && (
         <motion.div
+          data-drop-indicator
+          data-target-row={dropTarget.rowIndex}
           className={cn(
             'pointer-events-none absolute z-40',
             'bg-blue-100/80 dark:bg-blue-900/40 border-2 border-blue-400 dark:border-blue-500 border-dashed rounded-md',
@@ -747,6 +793,7 @@ export const GanttTimeline: FC<GanttTimelineProps> = ({
   className,
 }) => (
   <div
+    data-timeline
     className={cn(
       'relative flex h-full w-max flex-none overflow-clip',
       className

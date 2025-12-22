@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useMemo } from 'react';
 import { MouseSensor, useSensor } from '@dnd-kit/core';
-import { useMouse } from '@uidotdev/usehooks';
+import { useThrottledMouse } from './useThrottledMouse';
 import { addDays } from 'date-fns';
 import type { GanttContextProps } from '../types';
 import { getDifferenceIn, getInnerDifferenceIn, getDateByMousePosition, getAddRange } from '../utils';
@@ -43,7 +43,7 @@ export const useFeatureDrag = ({
   validDropRows,
   onMove,
 }: UseFeatureDragOptions) => {
-  const [mousePosition] = useMouse<HTMLDivElement>();
+  const [mousePosition] = useThrottledMouse<HTMLDivElement>();
   const [startAt, setStartAt] = useState<Date>(initialStartAt);
   const [endAt, setEndAt] = useState<Date | null>(initialEndAt);
   const [previousMouseX, setPreviousMouseX] = useState(0);
