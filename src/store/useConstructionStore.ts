@@ -15,7 +15,6 @@ type GroupName = string;
 interface ConstructionState {
   // ========== DOMAIN DATA ==========
   features: GanttFeature[];
-  visualRowMap: Record<FeatureId, number>;
 
   // ========== METADATA ==========
   groups: GroupName[];
@@ -28,8 +27,7 @@ interface ConstructionState {
   removeFeature: (id: FeatureId) => void;
 
   // Feature movement (drag/drop)
-  moveFeature: (id: FeatureId, startAt: Date, endAt: Date, targetRow?: number) => void;
-  updateVisualRow: (id: FeatureId, rowIndex: number) => void;
+  moveFeature: (id: FeatureId, startAt: Date, endAt: Date) => void;
 
   // Batch operations
   updateMultipleFeatures: (updates: Array<{ id: FeatureId; changes: Partial<GanttFeature> }>) => void;
@@ -49,7 +47,6 @@ interface ConstructionSelectors {
   getFeaturesByStatus: (statusId: string) => GanttFeature[];
 
   // Visual/layout queries
-  getVisualRow: (id: FeatureId) => number | undefined;
   getTotalRows: () => number;
   getFlatFeaturesWithIndex: () => Array<{ feature: GanttFeature; rowIndex: number; group: GroupName }>;
 }
@@ -169,7 +166,6 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
       immer((set, get) => ({
         // Initial state - populated with sample construction tasks
         features: DEFAULT_FEATURES,
-        visualRowMap: {},
         groups: DEFAULT_GROUPS,
         statuses: DEFAULT_STATUSES,
 
@@ -182,33 +178,26 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
 
         updateFeature: (id, updates) =>
           set((state) => {
-            const feature = state.features.find((f) => f.id === id);
-            if (feature) {
-              Object.assign(feature, updates);
+            const index = state.features.findIndex((f) => f.id === id);
+            const existing = state.features[index];
+            if (index !== -1 && existing) {
+              // Create new object to trigger proper reactivity with useShallow
+              state.features[index] = { ...existing, ...updates };
             }
           }),
 
         removeFeature: (id) =>
           set((state) => {
             state.features = state.features.filter((f) => f.id !== id);
-            delete state.visualRowMap[id];
           }),
 
-        moveFeature: (id, startAt, endAt, targetRow) =>
+        moveFeature: (id, startAt, endAt) =>
           set((state) => {
             const feature = state.features.find((f) => f.id === id);
             if (feature) {
               feature.startAt = startAt;
               feature.endAt = endAt;
             }
-            if (targetRow !== undefined) {
-              state.visualRowMap[id] = targetRow;
-            }
-          }),
-
-        updateVisualRow: (id, rowIndex) =>
-          set((state) => {
-            state.visualRowMap[id] = rowIndex;
           }),
 
         updateMultipleFeatures: (updates) =>
@@ -262,10 +251,6 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
           return get().features.filter((f) => f.status.id === statusId);
         },
 
-        getVisualRow: (id) => {
-          return get().visualRowMap[id];
-        },
-
         getTotalRows: () => {
           return get().features.length;
         },
@@ -293,7 +278,6 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
         name: 'construction-storage',
         partialize: (state) => ({
           features: state.features,
-          visualRowMap: state.visualRowMap,
         }),
         // Rehydrate dates from localStorage (JSON serializes them as strings)
         onRehydrateStorage: () => (state) => {

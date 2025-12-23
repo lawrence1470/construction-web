@@ -4,7 +4,6 @@ export {
   useFeature,
   useFeaturesByGroup,
   useFeaturesByStatus,
-  useVisualRowMap,
   useGroups,
   useStatuses,
 } from './useGanttFeatures';

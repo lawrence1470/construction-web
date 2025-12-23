@@ -84,13 +84,6 @@ export function useFeaturesByStatus(statusId: string): GanttFeature[] {
 }
 
 /**
- * Hook to get visual row map
- */
-export function useVisualRowMap(): Record<string, number> {
-  return useConstructionStore((state) => state.visualRowMap);
-}
-
-/**
  * Hook to get available groups
  */
 export function useGroups(): GroupName[] {

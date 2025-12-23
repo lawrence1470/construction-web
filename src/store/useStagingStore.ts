@@ -16,6 +16,7 @@ export interface StagedTask {
 
 interface StagingState {
   stagedTasks: StagedTask[];
+  nextTaskNumber: number;
 
   // Actions
   addStagedTask: (startAt: Date, status: GanttStatus) => string;
@@ -28,12 +29,14 @@ export const useStagingStore = create<StagingState>()(
   devtools(
     (set, get) => ({
       stagedTasks: [],
+      nextTaskNumber: 1000,
 
       addStagedTask: (startAt: Date, status: GanttStatus) => {
+        const currentNumber = get().nextTaskNumber;
         const id = `staged-${Date.now()}`;
         const newTask: StagedTask = {
           id,
-          name: 'New Task',
+          name: `New #${currentNumber}`,
           startAt,
           endAt: addDays(startAt, 7), // Default 7-day duration
           status,
@@ -42,6 +45,7 @@ export const useStagingStore = create<StagingState>()(
         set(
           (state) => ({
             stagedTasks: [...state.stagedTasks, newTask],
+            nextTaskNumber: state.nextTaskNumber + 1,
           }),
           undefined,
           'addStagedTask'

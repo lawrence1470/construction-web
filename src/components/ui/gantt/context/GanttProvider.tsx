@@ -298,6 +298,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     }
 
     const task = active.data.current?.task as StagedTask | undefined;
+
     if (!task || !onStagedItemDrop || !scrollRef.current) {
       return;
     }
@@ -316,7 +317,35 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       }
     }
 
-    // If no valid droppable row was detected, cancel the drop
+    // Fallback: If dnd-kit didn't detect a row, calculate from pointer position
+    // This handles cases where cross-container collision detection fails
+    if (dndKitRow === undefined) {
+      const containerRect = scrollRef.current.getBoundingClientRect();
+      const pointerEvent = activatorEvent as PointerEvent | MouseEvent | undefined;
+
+      if (pointerEvent) {
+        const delta = event.delta;
+        const initialY = (pointerEvent as PointerEvent).clientY ?? 0;
+        const currentY = initialY + delta.y;
+
+        // Calculate position relative to timeline
+        const scrollTop = scrollRef.current.scrollTop;
+        const positionInContainer = currentY - containerRect.top;
+        const timelineY = positionInContainer - headerHeight + scrollTop;
+
+        // Only accept if inside the timeline area
+        if (timelineY >= 0) {
+          const calculatedRow = Math.floor(timelineY / rowHeight);
+
+          // Validate this row exists in validDropRows
+          if (validDropRows?.includes(calculatedRow)) {
+            dndKitRow = calculatedRow;
+          }
+        }
+      }
+    }
+
+    // If still no valid droppable row was detected, cancel the drop
     if (dndKitRow === undefined) {
       return;
     }
@@ -340,7 +369,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     );
 
     onStagedItemDrop(task, newStartAt, newEndAt, dndKitRow);
-  }, [onStagedItemDrop, columnWidth, zoom, sidebarWidth, scrollX, timelineData, range, setDropTarget]);
+  }, [onStagedItemDrop, columnWidth, zoom, sidebarWidth, scrollX, timelineData, range, setDropTarget, validDropRows, headerHeight, rowHeight]);
 
   return (
     <GanttContext.Provider
@@ -366,6 +395,16 @@ export const GanttProvider: FC<GanttProviderProps> = ({
         onDragEnd={handleDragEnd}
       >
         <div className="relative flex h-full w-full flex-col">
+          {/* Staging zone - sticky left-0 keeps it static during horizontal scroll */}
+          {enableStaging && stagingZone && (
+            <div
+              className="sticky left-0 flex-shrink-0 z-50 bg-white dark:bg-[var(--bg-card)] border-b border-gray-200 dark:border-gray-700 overflow-x-clip"
+              style={cssVariables}
+            >
+              {stagingZone}
+            </div>
+          )}
+
           {/* Main area with gutter-based scrollbars */}
           <div className="flex flex-1 min-h-0">
             {/* Content column + X scrollbar gutter */}
@@ -399,15 +438,6 @@ export const GanttProvider: FC<GanttProviderProps> = ({
                   }}
                   ref={scrollRef}
                 >
-                  {/* Staging zone - now inside scroll container for unified DnD */}
-                  {enableStaging && stagingZone && (
-                    <div
-                      className="col-span-2 sticky top-0 z-50 bg-white dark:bg-[var(--bg-card)]"
-                      style={cssVariables}
-                    >
-                      {stagingZone}
-                    </div>
-                  )}
                   {children}
                 </div>
               </div>

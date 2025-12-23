@@ -13,7 +13,6 @@ interface FeatureActions {
   update: (id: FeatureId, updates: Partial<GanttFeature>) => void;
   remove: (id: FeatureId) => void;
   move: (id: FeatureId, startAt: Date, endAt: Date, targetRow?: number) => void;
-  updateVisualRow: (id: FeatureId, rowIndex: number) => void;
   updateMultiple: (updates: Array<{ id: FeatureId; changes: Partial<GanttFeature> }>) => void;
   reorderGroup: (groupName: GroupName, featureIds: FeatureId[]) => void;
   initialize: (features: GanttFeature[]) => void;
@@ -30,7 +29,6 @@ export function useFeatureActions(): FeatureActions {
       update: state.updateFeature,
       remove: state.removeFeature,
       move: state.moveFeature,
-      updateVisualRow: state.updateVisualRow,
       updateMultiple: state.updateMultipleFeatures,
       reorderGroup: state.reorderGroup,
       initialize: state.initializeFeatures,

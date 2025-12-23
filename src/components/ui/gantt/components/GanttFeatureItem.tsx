@@ -234,10 +234,8 @@ export const GanttFeatureItemCard = GanttTimelineBarCard;
 export type GanttTimelineBarProps = GanttTimelineBar & {
   onMove?: (id: string, startDate: Date, endDate: Date | null, targetRow?: number) => void;
   rowIndex?: number;
-  visualRow?: number;
   totalRows?: number;
   groupName?: string;
-  staggerIndex?: number;
   children?: ReactNode;
   className?: string;
   popoverContent?: ReactNode;
@@ -251,10 +249,8 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
   children,
   className,
   rowIndex,
-  visualRow,
   totalRows,
   groupName,
-  staggerIndex = 0,
   popoverContent,
   ...feature
 }) => {
@@ -298,12 +294,10 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
   );
 
   // Visual row calculations
-  const currentVisualRow = visualRow ?? rowIndex ?? 0;
-  const naturalRow = rowIndex ?? 0;
-  const visualRowOffset = useMemo(
-    () => (currentVisualRow - naturalRow) * gantt.rowHeight,
-    [currentVisualRow, naturalRow, gantt.rowHeight]
-  );
+  const currentVisualRow = rowIndex ?? 0;
+
+  // Bar height (row height minus padding)
+  const barHeight = gantt.rowHeight - 4;
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -421,8 +415,8 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
     setEndAt(newEndAt);
   }, [gantt, mousePosition.x, scrollX]);
 
-  // Total vertical offset = base visual offset + current drag offset
-  const totalVerticalOffset = visualRowOffset + (isDragging ? verticalOffset : 0);
+  // Vertical offset during dragging only
+  const dragVerticalOffset = isDragging ? verticalOffset : 0;
 
   // Memoize the fallback end date for right drag helper
   const rightDragHelperDate = useMemo(
@@ -461,16 +455,17 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
         onDragEnd={onDragEnd}
       >
         <motion.div
-          className="pointer-events-auto absolute top-0.5"
+          className="pointer-events-auto absolute"
           style={{
-            height: 'calc(var(--gantt-row-height) - 4px)',
+            height: barHeight,
             width: Math.round(width),
             left: Math.round(offset),
+            top: 2, // 2px base padding
             zIndex: isDragging ? 50 : 1,
           }}
           initial={false}
           animate={{
-            y: totalVerticalOffset,
+            y: dragVerticalOffset,
             scale: isDragging ? 1.02 : 1,
           }}
           transition={{

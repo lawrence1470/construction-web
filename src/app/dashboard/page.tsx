@@ -30,7 +30,6 @@ import {
   useFeatureActions,
   useGroups,
   useStatuses,
-  useVisualRowMap,
 } from '@/store/hooks';
 import {
   useStagedTasks,
@@ -42,7 +41,6 @@ import {
 interface GanttFeatureRowProps {
   feature: GanttFeature;
   rowIndex: number;
-  visualRow: number;
   totalRows: number;
   group: string;
   onMove: (id: string, startAt: Date, endAt: Date | null, targetRow?: number) => void;
@@ -53,7 +51,6 @@ interface GanttFeatureRowProps {
 const GanttFeatureRow = memo(function GanttFeatureRow({
   feature,
   rowIndex,
-  visualRow,
   totalRows,
   group,
   onMove,
@@ -70,7 +67,6 @@ const GanttFeatureRow = memo(function GanttFeatureRow({
       <GanttFeatureItem
         onMove={onMove}
         rowIndex={rowIndex}
-        visualRow={visualRow}
         totalRows={totalRows}
         groupName={group}
         popoverContent={popoverContent}
@@ -89,7 +85,6 @@ export default function DashboardPage() {
   const { add: addFeature, move: moveFeature, update: updateFeature, remove: removeFeature } = useFeatureActions();
   const groups = useGroups();
   const statuses = useStatuses();
-  const visualRowMap = useVisualRowMap();
 
   // Staging zone state
   const stagedTasks = useStagedTasks();
@@ -160,12 +155,16 @@ export default function DashboardPage() {
 
   const handleStagedItemDrop = useCallback(
     (stagedTask: StagedTask, startAt: Date, endAt: Date, targetRow: number) => {
-      // Find the existing feature at the target row
-      const targetFeature = allFeaturesWithIndex.find((f) => f.rowIndex === targetRow);
+      // Find the target row's feature - this is the EXISTING feature we want to schedule
+      const targetFeatureEntry = allFeaturesWithIndex.find((f) => f.rowIndex === targetRow);
 
-      if (targetFeature) {
-        // Update the existing feature's dates (connect timeline to existing issue)
-        updateFeature(targetFeature.id, { startAt, endAt });
+      if (targetFeatureEntry) {
+        // UPDATE the existing feature with the dropped dates
+        // This "connects" the staged task to the existing row by scheduling it
+        updateFeature(targetFeatureEntry.feature.id, {
+          startAt,
+          endAt,
+        });
         removeStagedTask(stagedTask.id);
       }
     },
@@ -281,12 +280,12 @@ export default function DashboardPage() {
                         if (!feature.startAt || !feature.endAt) {
                           return null;
                         }
+
                         return (
                           <GanttFeatureRow
                             key={feature.id}
                             feature={feature}
                             rowIndex={rowIndex}
-                            visualRow={visualRowMap[feature.id] ?? rowIndex}
                             totalRows={totalRows}
                             group={group}
                             onMove={handleMoveFeature}
