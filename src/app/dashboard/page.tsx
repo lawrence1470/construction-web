@@ -240,7 +240,9 @@ export default function DashboardPage() {
           <GanttProvider
             range="monthly"
             zoom={100}
-            validDropRows={allFeaturesWithIndex.map(f => f.rowIndex)}
+            validDropRows={allFeaturesWithIndex
+              .filter(f => !f.feature.startAt && !f.feature.endAt)
+              .map(f => f.rowIndex)}
             className="h-full border rounded-2xl"
             enableStaging={true}
             stagingZone={

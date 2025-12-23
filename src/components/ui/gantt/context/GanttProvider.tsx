@@ -36,6 +36,7 @@ import type { Range, TimelineData } from '../types';
 import { createInitialTimelineData, getMonthBoundsByMousePosition } from '../utils';
 import { GanttContext } from './GanttContext';
 import type { StagedTask } from '@/store/useStagingStore';
+import { toast } from 'sonner';
 
 // Re-export from Zustand store for backwards compatibility
 export {
@@ -303,23 +304,22 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       return;
     }
 
-    // Use event.over from dnd-kit's collision detection for proper row targeting
-    let dndKitRow: number | undefined;
+    // Determine target row - either from dnd-kit collision detection or pointer calculation
+    let targetRow: number | undefined;
 
     if (over) {
       // Parse row index from droppable ID (format: "droppable-row-{index}")
       const overId = String(over.id);
       if (overId.startsWith('droppable-row-')) {
-        dndKitRow = parseInt(overId.replace('droppable-row-', ''), 10);
+        targetRow = parseInt(overId.replace('droppable-row-', ''), 10);
       } else if (over.data.current?.rowIndex !== undefined) {
         // Fallback: check droppable data
-        dndKitRow = over.data.current.rowIndex;
+        targetRow = over.data.current.rowIndex;
       }
     }
 
     // Fallback: If dnd-kit didn't detect a row, calculate from pointer position
-    // This handles cases where cross-container collision detection fails
-    if (dndKitRow === undefined) {
+    if (targetRow === undefined) {
       const containerRect = scrollRef.current.getBoundingClientRect();
       const pointerEvent = activatorEvent as PointerEvent | MouseEvent | undefined;
 
@@ -335,18 +335,24 @@ export const GanttProvider: FC<GanttProviderProps> = ({
 
         // Only accept if inside the timeline area
         if (timelineY >= 0) {
-          const calculatedRow = Math.floor(timelineY / rowHeight);
-
-          // Validate this row exists in validDropRows
-          if (validDropRows?.includes(calculatedRow)) {
-            dndKitRow = calculatedRow;
-          }
+          targetRow = Math.floor(timelineY / rowHeight);
         }
       }
     }
 
-    // If still no valid droppable row was detected, cancel the drop
-    if (dndKitRow === undefined) {
+    // If no row detected at all, cancel the drop
+    if (targetRow === undefined) {
+      toast.error('Drop cancelled', {
+        description: 'Drop the task on the timeline to schedule it',
+      });
+      return;
+    }
+
+    // Validate that the target row is available (not occupied)
+    if (validDropRows && !validDropRows.includes(targetRow)) {
+      toast.error('This row already has a task scheduled', {
+        description: 'Drop the task on an empty row',
+      });
       return;
     }
 
@@ -368,7 +374,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       timelineX
     );
 
-    onStagedItemDrop(task, newStartAt, newEndAt, dndKitRow);
+    onStagedItemDrop(task, newStartAt, newEndAt, targetRow);
   }, [onStagedItemDrop, columnWidth, zoom, sidebarWidth, scrollX, timelineData, range, setDropTarget, validDropRows, headerHeight, rowHeight]);
 
   return (
