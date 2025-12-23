@@ -74,9 +74,11 @@ export const GanttStagingRow: FC<GanttStagingRowProps> = ({
     <div
       data-staging-zone
       className={cn(
-        'flex items-center gap-3 px-3 py-2',
-        'bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-950/30 dark:to-transparent',
-        'border-b border-blue-100 dark:border-blue-900/50',
+        'flex items-center gap-3 px-4 py-2.5 mx-3 my-2',
+        'bg-gradient-to-r from-blue-50/80 to-blue-50/40 dark:from-blue-950/40 dark:to-blue-950/20',
+        'border border-blue-200/60 dark:border-blue-800/60',
+        'rounded-xl',
+        'shadow-sm',
         isFullscreen && 'py-3'
       )}
     >
@@ -86,10 +88,13 @@ export const GanttStagingRow: FC<GanttStagingRowProps> = ({
         size="sm"
         className={cn(
           'h-7 px-3 gap-1.5',
-          'border-blue-200 dark:border-blue-700',
+          'border-blue-300 dark:border-blue-600',
           'text-blue-600 dark:text-blue-400',
+          'bg-white/80 dark:bg-blue-900/30',
           'hover:bg-blue-100 dark:hover:bg-blue-900/50',
-          'hover:border-blue-300 dark:hover:border-blue-600',
+          'hover:border-blue-400 dark:hover:border-blue-500',
+          'rounded-lg',
+          'shadow-sm',
           'flex-shrink-0'
         )}
         onClick={onQuickAdd}
@@ -99,7 +104,7 @@ export const GanttStagingRow: FC<GanttStagingRowProps> = ({
       </Button>
 
       {/* Divider */}
-      <div className="h-5 w-px bg-blue-200 dark:bg-blue-800 flex-shrink-0" />
+      <div className="h-5 w-px bg-blue-200/80 dark:bg-blue-700/50 rounded-full flex-shrink-0" />
 
       {/* Staged tasks as compact chips */}
       <div className="flex items-center gap-2 overflow-x-auto flex-1 min-w-0 py-0.5">
@@ -112,7 +117,7 @@ export const GanttStagingRow: FC<GanttStagingRowProps> = ({
         {/* Empty state hint */}
         {stagedTasks.length === 0 && (
           <motion.span
-            className="text-xs text-blue-400 dark:text-blue-500 italic whitespace-nowrap"
+            className="text-xs text-blue-400/80 dark:text-blue-500/80 whitespace-nowrap"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
