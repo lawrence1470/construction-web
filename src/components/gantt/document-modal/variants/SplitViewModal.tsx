@@ -510,7 +510,7 @@ export const SplitViewModal = memo(function SplitViewModal({
             />
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-gray-400">
-              <span className="text-3xl mb-2">📂</span>
+              <FolderOpen className="w-10 h-10 mb-2 text-gray-300" />
               <span className="text-sm">Select a folder to view documents</span>
             </div>
           )}
