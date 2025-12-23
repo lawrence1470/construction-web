@@ -86,7 +86,7 @@ export default function DashboardPage() {
 
   // Zustand state - features, groups, statuses from store
   const { grouped: groupedFeatures, flatList: allFeaturesWithIndex, totalRows } = useGroupedFeaturesWithRows();
-  const { add: addFeature, move: moveFeature, update: updateFeature, remove: removeFeature, updateVisualRow } = useFeatureActions();
+  const { add: addFeature, move: moveFeature, update: updateFeature, remove: removeFeature } = useFeatureActions();
   const groups = useGroups();
   const statuses = useStatuses();
   const visualRowMap = useVisualRowMap();
@@ -160,28 +160,16 @@ export default function DashboardPage() {
 
   const handleStagedItemDrop = useCallback(
     (stagedTask: StagedTask, startAt: Date, endAt: Date, targetRow: number) => {
-      // Find the group for the target row
+      // Find the existing feature at the target row
       const targetFeature = allFeaturesWithIndex.find((f) => f.rowIndex === targetRow);
-      const targetGroup = targetFeature?.group ?? groups[0] ?? 'Default';
 
-      // Create a new feature from the staged task
-      const newFeature: GanttFeature = {
-        id: `task-${Date.now()}`,
-        name: stagedTask.name,
-        startAt,
-        endAt,
-        status: stagedTask.status,
-        group: targetGroup,
-      };
-
-      addFeature(newFeature);
-
-      // Set the visual row position so the task appears at the drop location
-      updateVisualRow(newFeature.id, targetRow);
-
-      removeStagedTask(stagedTask.id);
+      if (targetFeature) {
+        // Update the existing feature's dates (connect timeline to existing issue)
+        updateFeature(targetFeature.id, { startAt, endAt });
+        removeStagedTask(stagedTask.id);
+      }
     },
-    [allFeaturesWithIndex, groups, addFeature, updateVisualRow, removeStagedTask]
+    [allFeaturesWithIndex, updateFeature, removeStagedTask]
   );
 
   return (
