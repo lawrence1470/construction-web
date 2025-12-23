@@ -4,7 +4,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { differenceInMonths, addDays } from 'date-fns';
+import { differenceInMonths } from 'date-fns';
 import { motion } from 'framer-motion';
 import throttle from 'lodash.throttle';
 import { CustomScrollbar } from '../components/CustomScrollbar';
@@ -26,6 +26,7 @@ import {
   useSensor,
   useSensors,
   PointerSensor,
+  rectIntersection,
   type DragEndEvent,
   type DragStartEvent,
   type DragMoveEvent,
@@ -95,9 +96,12 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     })
   );
 
-  // Scroll fade indicator states
+  // Use standard rectIntersection - staging zone is now inside the same scroll container
+  // so cross-container issues no longer exist
+  const collisionDetection = rectIntersection;
+
+  // Scroll fade indicator state (left side only)
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
   const [, setScrollY] = useGanttScrollY();
 
   const headerHeight = 60;
@@ -156,7 +160,6 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     const max = scrollWidth - clientWidth;
 
     setCanScrollLeft(scrollLeft > threshold);
-    setCanScrollRight(scrollLeft < max - threshold);
   }, []);
 
   // Track scroll position - throttled for performance
@@ -299,23 +302,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       return;
     }
 
-    // *** DEBUG: Calculate row using SAME logic as handleDragMove (manual calculation) ***
-    const pointerEvent = activatorEvent as PointerEvent | MouseEvent | undefined;
-    const containerRect = scrollRef.current.getBoundingClientRect();
-    const delta = event.delta;
-
-    let manualCalcRow: number | undefined;
-    if (pointerEvent) {
-      const initialY = (pointerEvent as PointerEvent).clientY ?? 0;
-      const currentY = initialY + delta.y;
-      const scrollTop = scrollRef.current.scrollTop;
-      const positionInContainer = currentY - containerRect.top;
-      const timelineY = positionInContainer - headerHeight + scrollTop;
-      manualCalcRow = Math.max(0, Math.floor(timelineY / rowHeight));
-    }
-
-    // *** KEY: Use event.over from dnd-kit's collision detection ***
-    // This is the proper DnD way - dnd-kit handles all the coordinate math
+    // Use event.over from dnd-kit's collision detection for proper row targeting
     let dndKitRow: number | undefined;
 
     if (over) {
@@ -335,11 +322,13 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     }
 
     // Calculate timeline X position for date snapping
-    // We still need mouse position for horizontal date calculation
+    const pointerEvent = activatorEvent as PointerEvent | MouseEvent | undefined;
     if (!pointerEvent) {
       return;
     }
 
+    const containerRect = scrollRef.current.getBoundingClientRect();
+    const delta = event.delta;
     const initialX = (pointerEvent as PointerEvent).clientX ?? 0;
     const finalX = initialX + delta.x;
     const timelineX = finalX - containerRect.left - sidebarWidth + scrollX;
@@ -350,14 +339,8 @@ export const GanttProvider: FC<GanttProviderProps> = ({
       timelineX
     );
 
-    console.log('[Staging] Drop complete:', {
-      taskId: task.id,
-      targetRow: dndKitRow,
-      month: newStartAt.toLocaleString('default', { month: 'long', year: 'numeric' }),
-    });
-
     onStagedItemDrop(task, newStartAt, newEndAt, dndKitRow);
-  }, [onStagedItemDrop, columnWidth, zoom, sidebarWidth, scrollX, timelineData, range, setDropTarget, headerHeight, rowHeight]);
+  }, [onStagedItemDrop, columnWidth, zoom, sidebarWidth, scrollX, timelineData, range, setDropTarget]);
 
   return (
     <GanttContext.Provider
@@ -377,16 +360,12 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     >
       <DndContext
         sensors={sensors}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
       >
         <div className="relative flex h-full w-full flex-col">
-          {/* Staging zone slot - rendered above main chart */}
-          {enableStaging && stagingZone && (
-            <div style={cssVariables}>{stagingZone}</div>
-          )}
-
           {/* Main area with gutter-based scrollbars */}
           <div className="flex flex-1 min-h-0">
             {/* Content column + X scrollbar gutter */}
@@ -405,17 +384,6 @@ export const GanttProvider: FC<GanttProviderProps> = ({
                   transition={{ duration: 0.2 }}
                 />
 
-                {/* Scroll fade indicator - Right */}
-                <motion.div
-                  className={cn(
-                    'pointer-events-none absolute right-0 top-0 z-40 h-full w-16',
-                    'bg-gradient-to-l from-black/10 dark:from-black/30 to-transparent'
-                  )}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: canScrollRight ? 1 : 0 }}
-                  transition={{ duration: 0.2 }}
-                />
-
                 {/* Main scroll container - native scrolling with hidden scrollbars */}
                 <div
                   className={cn(
@@ -431,6 +399,15 @@ export const GanttProvider: FC<GanttProviderProps> = ({
                   }}
                   ref={scrollRef}
                 >
+                  {/* Staging zone - now inside scroll container for unified DnD */}
+                  {enableStaging && stagingZone && (
+                    <div
+                      className="col-span-2 sticky top-0 z-50 bg-white dark:bg-[var(--bg-card)]"
+                      style={cssVariables}
+                    >
+                      {stagingZone}
+                    </div>
+                  )}
                   {children}
                 </div>
               </div>

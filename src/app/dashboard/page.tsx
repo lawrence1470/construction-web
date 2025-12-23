@@ -21,7 +21,7 @@ import {
   type GanttFeature,
 } from '@/components/ui/gantt';
 import GanttTaskColumn from '@/components/gantt/GanttTaskColumn';
-import AddTaskModal, { type NewTaskData } from '@/components/gantt/AddTaskModal';
+import { GanttStagingRow } from '@/components/gantt/GanttStagingRow';
 import TimelineBarPopover from '@/components/gantt/TimelineBarPopover';
 
 // Zustand store imports
@@ -97,8 +97,6 @@ export default function DashboardPage() {
 
   // Local UI state - stays as useState
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Dynamic greeting based on time of day
   const greeting = useMemo(() => {
@@ -125,11 +123,6 @@ export default function DashboardPage() {
     moveFeature(id, startAt, endAt, targetRow);
   }, [moveFeature]);
 
-  const handleAddFeature = useCallback((date: Date) => {
-    setSelectedDate(date);
-    setAddTaskModalOpen(true);
-  }, []);
-
   const handleCoverImageChange = useCallback((featureId: string, coverImage: string | undefined) => {
     updateFeature(featureId, { coverImage });
   }, [updateFeature]);
@@ -137,23 +130,6 @@ export default function DashboardPage() {
   const handleDeleteFeature = useCallback((featureId: string) => {
     removeFeature(featureId);
   }, [removeFeature]);
-
-  const handleAddTask = useCallback((taskData: NewTaskData) => {
-    // Get status from store, fallback to planned status
-    const status = statuses[taskData.statusId] || statuses['planned'];
-    if (!status) return; // Safety check - should never happen with default data
-
-    const newFeature: GanttFeature = {
-      id: `task-${Date.now()}`,
-      name: taskData.name,
-      startAt: taskData.startAt,
-      endAt: taskData.endAt,
-      status,
-      group: taskData.group,
-    };
-
-    addFeature(newFeature);
-  }, [statuses, addFeature]);
 
   // Handler for adding tasks directly from month header buttons (Option A)
   const handleAddToMonth = useCallback((startAt: Date, endAt: Date) => {
@@ -275,19 +251,23 @@ export default function DashboardPage() {
           }}
         >
           <GanttProvider
-            onAddItem={handleAddFeature}
             range="monthly"
             zoom={100}
             validDropRows={allFeaturesWithIndex.map(f => f.rowIndex)}
             className="h-full border rounded-2xl"
             enableStaging={true}
+            stagingZone={
+              <GanttStagingRow
+                stagedTasks={stagedTasks}
+                onQuickAdd={handleQuickAdd}
+                isFullscreen={isFullscreen}
+              />
+            }
             onStagedItemDrop={handleStagedItemDrop}
           >
             <GanttTaskColumn
               groupedFeatures={groupedFeatures}
               isFullscreen={isFullscreen}
-              stagedTasks={stagedTasks}
-              onQuickAdd={handleQuickAdd}
             />
             <GanttTimeline>
               <GanttHeader onAddToMonth={handleAddToMonth} />
@@ -309,6 +289,10 @@ export default function DashboardPage() {
                     <GanttFeatureListGroup key={group}>
                       {groupFeatures.map((feature, indexInGroup) => {
                         const rowIndex = groupStartRow + indexInGroup;
+                        // Only render timeline bar if feature has dates scheduled
+                        if (!feature.startAt || !feature.endAt) {
+                          return null;
+                        }
                         return (
                           <GanttFeatureRow
                             key={feature.id}
@@ -339,14 +323,6 @@ export default function DashboardPage() {
         <TeamActivity />
       </div>
 
-      {/* Add Task Modal */}
-      <AddTaskModal
-        open={addTaskModalOpen}
-        onOpenChange={setAddTaskModalOpen}
-        defaultDate={selectedDate}
-        groupNames={groups}
-        onAddTask={handleAddTask}
-      />
     </LayoutWrapper>
   );
 }

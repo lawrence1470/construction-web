@@ -73,6 +73,9 @@ const TimelineBarPopover = memo(function TimelineBarPopover({
     const start = feature.startAt;
     const end = feature.endAt;
 
+    // If no dates set, return 0% progress
+    if (!start || !end) return 0;
+
     if (now < start) return 0;
     if (now > end) return 100;
 
@@ -197,18 +200,20 @@ const TimelineBarPopover = memo(function TimelineBarPopover({
       </div>
 
       {/* Timeline Footer */}
-      <div className="px-3 py-2 border-t border-gray-100 dark:border-[var(--border-color)] bg-gray-50/50 dark:bg-[var(--bg-input)]/30 rounded-b-xl">
-        <div className="flex items-center gap-3 text-[11px]">
-          <div className="flex items-center gap-1.5 text-gray-500 dark:text-[var(--text-secondary)]">
-            <CalendarDays className="w-3 h-3 flex-shrink-0" />
-            <span>{formatDate(feature.startAt)} – {formatDate(feature.endAt)}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
-            <Clock className="w-3 h-3 flex-shrink-0" />
-            <span>{getDuration(feature.startAt, feature.endAt)}</span>
+      {feature.startAt && feature.endAt && (
+        <div className="px-3 py-2 border-t border-gray-100 dark:border-[var(--border-color)] bg-gray-50/50 dark:bg-[var(--bg-input)]/30 rounded-b-xl">
+          <div className="flex items-center gap-3 text-[11px]">
+            <div className="flex items-center gap-1.5 text-gray-500 dark:text-[var(--text-secondary)]">
+              <CalendarDays className="w-3 h-3 flex-shrink-0" />
+              <span>{formatDate(feature.startAt)} – {formatDate(feature.endAt)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
+              <Clock className="w-3 h-3 flex-shrink-0" />
+              <span>{getDuration(feature.startAt, feature.endAt)}</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 });

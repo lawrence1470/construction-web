@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import { useMouse, useThrottle, useWindowScroll } from '@uidotdev/usehooks';
-import { addDays, format, formatDate, formatDistance, isSameDay } from 'date-fns';
+import { addDays, format, formatDate } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
@@ -316,14 +316,6 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = memo(({
   className,
   isFullscreen = false,
 }) => {
-  const tempEndAt =
-    feature.endAt && isSameDay(feature.startAt, feature.endAt)
-      ? addDays(feature.endAt, 1)
-      : feature.endAt;
-  const duration = tempEndAt
-    ? formatDistance(feature.startAt, tempEndAt)
-    : `${formatDistance(feature.startAt, new Date())} so far`;
-
   const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
     if (event.target === event.currentTarget) {
       onSelectItem?.(feature.id);
@@ -364,7 +356,6 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = memo(({
       <p className="pointer-events-none flex-1 truncate text-left font-medium text-gray-800 dark:text-[var(--text-primary)]">
         {feature.name}
       </p>
-      <p className="pointer-events-none text-gray-500 dark:text-[var(--text-tertiary)]">{duration}</p>
     </div>
   );
 });
@@ -375,10 +366,8 @@ export const GanttSidebarHeader: FC = () => (
     className="sticky top-0 z-10 flex shrink-0 items-end border-gray-200 dark:border-[var(--border-color)] border-b bg-white dark:bg-[var(--bg-card)] font-medium text-gray-600 dark:text-[var(--text-secondary)] text-xs transition-colors duration-300"
     style={{ height: 'var(--gantt-header-height)' }}
   >
-    <p className="w-[100px] shrink-0 truncate p-2.5 text-left border-r border-gray-200 dark:border-[var(--border-color)]">Groups</p>
-    <div className="flex flex-1 items-end justify-between gap-2.5 p-2.5">
+    <div className="flex flex-1 items-end p-2.5">
       <p className="flex-1 truncate text-left">Issues</p>
-      <p className="shrink-0">Duration</p>
     </div>
   </div>
 );
@@ -398,20 +387,8 @@ export const GanttSidebarGroup: FC<GanttSidebarGroupProps> = ({
   className,
   isFullscreen = false,
 }) => (
-  <div className={cn('flex', isFullscreen && 'flex-1', className)}>
-    {/* Group name column - spans all task rows */}
-    <div
-      className={cn(
-        'w-[100px] shrink-0 border-r border-gray-200 dark:border-[var(--border-color)] flex items-center',
-        isFullscreen && 'h-full'
-      )}
-      style={isFullscreen ? undefined : { height: `calc(${taskCount} * var(--gantt-row-height))` }}
-    >
-      <p className="w-full truncate p-2.5 text-left font-medium text-gray-600 dark:text-[var(--text-secondary)] text-xs">
-        {name}
-      </p>
-    </div>
-    {/* Tasks column */}
+  <div className={cn('flex flex-col', isFullscreen && 'flex-1', className)}>
+    {/* Tasks column - no group name column */}
     <div className={cn(
       'flex-1 divide-y divide-gray-200 dark:divide-[var(--border-color)]',
       isFullscreen && 'flex flex-col'
@@ -423,12 +400,15 @@ export type GanttSidebarProps = {
   children: ReactNode;
   className?: string;
   isFullscreen?: boolean;
+  /** Optional staging zone rendered above the "Issues" header with sticky positioning */
+  stagingZone?: ReactNode;
 };
 
 export const GanttSidebar: FC<GanttSidebarProps> = ({
   children,
   className,
   isFullscreen = false,
+  stagingZone,
 }) => (
   <div
     data-roadmap-ui="gantt-sidebar"
@@ -438,6 +418,12 @@ export const GanttSidebar: FC<GanttSidebarProps> = ({
       className
     )}
   >
+    {/* Staging zone above header - sticky with higher z-index */}
+    {stagingZone && (
+      <div className="sticky top-0 z-20">
+        {stagingZone}
+      </div>
+    )}
     <GanttSidebarHeader />
     <div className={cn(
       'divide-y divide-gray-200 dark:divide-[var(--border-color)]',
@@ -725,9 +711,10 @@ export const GanttRowGrid: FC<GanttRowGridProps> = ({
       {rowsToRender.map((rowIndex) => (
         <div
           key={`${id}-row-${rowIndex}`}
-          className="absolute left-0 w-full border-b border-gray-200 dark:border-[var(--border-color)] pointer-events-none"
+          className="absolute left-0 w-full h-px bg-gray-200 dark:bg-[var(--border-color)] pointer-events-none"
           style={{
             top: `calc(${rowIndex + 1} * var(--gantt-row-height))`,
+            zIndex: 1,
           }}
         />
       ))}

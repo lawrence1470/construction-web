@@ -264,9 +264,10 @@ export const GanttTimelineBarItem: FC<GanttTimelineBarProps> = ({
   const gantt = useContext(GanttContext);
   const [mousePosition] = useThrottledMouse<HTMLDivElement>();
 
-  // State
-  const [startAt, setStartAt] = useState<Date>(feature.startAt);
-  const [endAt, setEndAt] = useState<Date | null>(feature.endAt);
+  // State - feature.startAt/endAt can be null/undefined in the type, but this component
+  // should only be rendered for features that have dates (validated by parent)
+  const [startAt, setStartAt] = useState<Date>(feature.startAt ?? new Date());
+  const [endAt, setEndAt] = useState<Date | null>(feature.endAt ?? null);
   const [previousMouseX, setPreviousMouseX] = useState(0);
   const [previousMouseY, setPreviousMouseY] = useState(0);
   const [previousStartAt, setPreviousStartAt] = useState(startAt);

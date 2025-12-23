@@ -10,8 +10,8 @@ export type GanttStatus = {
 export type GanttTimelineBar = {
   id: string;
   name: string;
-  startAt: Date;
-  endAt: Date;
+  startAt?: Date | null; // Optional - unscheduled issues won't have dates
+  endAt?: Date | null;   // Optional - unscheduled issues won't have dates
   status: GanttStatus;
   group?: string;
   coverImage?: string; // Base64 data URL or blob URL for cover image

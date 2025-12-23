@@ -3,7 +3,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { addDays, addWeeks } from 'date-fns';
 import type { GanttFeature, GanttStatus } from '@/components/ui/gantt/types';
 
 // ============================================================================
@@ -77,116 +76,88 @@ const DEFAULT_STATUSES: Record<string, GanttStatus> = {
   planned: PLANNED_STATUS,
 };
 
-// Generate initial features
-const createInitialFeatures = (): GanttFeature[] => {
-  const today = new Date();
-  const completedStatus = COMPLETED_STATUS;
-  const inProgressStatus = IN_PROGRESS_STATUS;
-  const plannedStatus = PLANNED_STATUS;
+// Sample unscheduled issues - shown in sidebar but no timeline bars
+const DEFAULT_FEATURES: GanttFeature[] = [
+  // Foundation & Site Work
+  {
+    id: 'task-1',
+    name: 'Site Clearing & Grading',
+    status: PLANNED_STATUS,
+    group: 'Foundation & Site Work',
+  },
+  {
+    id: 'task-2',
+    name: 'Foundation Excavation',
+    status: PLANNED_STATUS,
+    group: 'Foundation & Site Work',
+  },
+  {
+    id: 'task-3',
+    name: 'Concrete Pouring',
+    status: PLANNED_STATUS,
+    group: 'Foundation & Site Work',
+  },
 
-  return [
-    // Foundation Phase
-    {
-      id: '1',
-      name: 'Site Preparation',
-      startAt: today,
-      endAt: addDays(today, 7),
-      status: completedStatus,
-      group: 'Foundation & Site Work',
-    },
-    {
-      id: '2',
-      name: 'Excavation',
-      startAt: addDays(today, 3),
-      endAt: addDays(today, 10),
-      status: inProgressStatus,
-      group: 'Foundation & Site Work',
-    },
-    {
-      id: '3',
-      name: 'Foundation Pour',
-      startAt: addDays(today, 11),
-      endAt: addDays(today, 14),
-      status: plannedStatus,
-      group: 'Foundation & Site Work',
-    },
-    // Structural Phase
-    {
-      id: '4',
-      name: 'Steel Framework',
-      startAt: addDays(today, 15),
-      endAt: addDays(today, 28),
-      status: plannedStatus,
-      group: 'Structural Work',
-    },
-    {
-      id: '5',
-      name: 'Concrete Floors',
-      startAt: addDays(today, 20),
-      endAt: addWeeks(today, 4),
-      status: plannedStatus,
-      group: 'Structural Work',
-    },
-    // MEP Phase
-    {
-      id: '6',
-      name: 'Electrical Rough-In',
-      startAt: addWeeks(today, 4),
-      endAt: addWeeks(today, 6),
-      status: plannedStatus,
-      group: 'MEP (Mechanical, Electrical, Plumbing)',
-    },
-    {
-      id: '7',
-      name: 'Plumbing Installation',
-      startAt: addWeeks(today, 4),
-      endAt: addWeeks(today, 6),
-      status: plannedStatus,
-      group: 'MEP (Mechanical, Electrical, Plumbing)',
-    },
-    {
-      id: '8',
-      name: 'HVAC Installation',
-      startAt: addWeeks(today, 5),
-      endAt: addWeeks(today, 7),
-      status: plannedStatus,
-      group: 'MEP (Mechanical, Electrical, Plumbing)',
-    },
-    // Finishing Phase
-    {
-      id: '9',
-      name: 'Insulation & Drywall',
-      startAt: addWeeks(today, 7),
-      endAt: addWeeks(today, 9),
-      status: plannedStatus,
-      group: 'Finishing & Inspection',
-    },
-    {
-      id: '10',
-      name: 'Flooring',
-      startAt: addWeeks(today, 9),
-      endAt: addWeeks(today, 10),
-      status: plannedStatus,
-      group: 'Finishing & Inspection',
-    },
-    {
-      id: '11',
-      name: 'Painting',
-      startAt: addWeeks(today, 9),
-      endAt: addWeeks(today, 11),
-      status: plannedStatus,
-      group: 'Finishing & Inspection',
-    },
-    {
-      id: '12',
-      name: 'Final Inspections',
-      startAt: addWeeks(today, 11),
-      endAt: addWeeks(today, 12),
-      status: plannedStatus,
-      group: 'Finishing & Inspection',
-    },
-  ];
-};
+  // Structural Work
+  {
+    id: 'task-4',
+    name: 'Steel Frame Erection',
+    status: PLANNED_STATUS,
+    group: 'Structural Work',
+  },
+  {
+    id: 'task-5',
+    name: 'Roof Truss Installation',
+    status: PLANNED_STATUS,
+    group: 'Structural Work',
+  },
+  {
+    id: 'task-6',
+    name: 'Exterior Wall Framing',
+    status: PLANNED_STATUS,
+    group: 'Structural Work',
+  },
+
+  // MEP (Mechanical, Electrical, Plumbing)
+  {
+    id: 'task-7',
+    name: 'Rough Plumbing',
+    status: PLANNED_STATUS,
+    group: 'MEP (Mechanical, Electrical, Plumbing)',
+  },
+  {
+    id: 'task-8',
+    name: 'Electrical Wiring',
+    status: PLANNED_STATUS,
+    group: 'MEP (Mechanical, Electrical, Plumbing)',
+  },
+  {
+    id: 'task-9',
+    name: 'HVAC Installation',
+    status: PLANNED_STATUS,
+    group: 'MEP (Mechanical, Electrical, Plumbing)',
+  },
+
+  // Finishing & Inspection
+  {
+    id: 'task-10',
+    name: 'Drywall Installation',
+    status: PLANNED_STATUS,
+    group: 'Finishing & Inspection',
+  },
+  {
+    id: 'task-11',
+    name: 'Interior Painting',
+    status: PLANNED_STATUS,
+    group: 'Finishing & Inspection',
+  },
+  {
+    id: 'task-12',
+    name: 'Final Inspection',
+    status: PLANNED_STATUS,
+    group: 'Finishing & Inspection',
+  },
+];
 
 // ============================================================================
 // STORE IMPLEMENTATION
@@ -196,8 +167,8 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
   devtools(
     persist(
       immer((set, get) => ({
-        // Initial state
-        features: createInitialFeatures(),
+        // Initial state - populated with sample construction tasks
+        features: DEFAULT_FEATURES,
         visualRowMap: {},
         groups: DEFAULT_GROUPS,
         statuses: DEFAULT_STATUSES,
@@ -329,8 +300,9 @@ export const useConstructionStore = create<ConstructionState & ConstructionSelec
           if (state?.features) {
             state.features = state.features.map((feature) => ({
               ...feature,
-              startAt: new Date(feature.startAt),
-              endAt: new Date(feature.endAt),
+              // Only convert to Date if value exists (unscheduled issues have no dates)
+              startAt: feature.startAt ? new Date(feature.startAt) : undefined,
+              endAt: feature.endAt ? new Date(feature.endAt) : undefined,
             }));
           }
         },
