@@ -8,7 +8,7 @@ export const earthworkCategory: DocumentCategory = {
     {
       id: 'rfi',
       name: 'RFI',
-      icon: '📋',
+      icon: 'clipboard-list',
       count: 3,
       documents: [
         { id: 'rfi-001', name: 'RFI-001-Foundation-Depth.pdf', type: 'pdf', size: '245 KB', uploadedAt: new Date('2024-12-15'), uploadedBy: 'John Smith', status: 'approved' },
@@ -19,7 +19,7 @@ export const earthworkCategory: DocumentCategory = {
     {
       id: 'submittals',
       name: 'Submittals',
-      icon: '📁',
+      icon: 'folder-open',
       count: 12,
       subFolders: [
         {
@@ -57,7 +57,7 @@ export const earthworkCategory: DocumentCategory = {
     {
       id: 'change-orders',
       name: 'Change Orders',
-      icon: '📝',
+      icon: 'file-pen',
       count: 2,
       documents: [
         { id: 'co-001', name: 'CO-001-Additional-Excavation.pdf', type: 'pdf', size: '445 KB', uploadedAt: new Date('2024-12-18'), uploadedBy: 'Project Manager', status: 'approved' },
@@ -67,7 +67,7 @@ export const earthworkCategory: DocumentCategory = {
     {
       id: 'photos',
       name: 'Photos',
-      icon: '📷',
+      icon: 'camera',
       count: 28,
       subFolders: [
         {
@@ -92,7 +92,7 @@ export const earthworkCategory: DocumentCategory = {
     {
       id: 'inspections',
       name: 'Inspections',
-      icon: '🔍',
+      icon: 'clipboard-check',
       count: 6,
       subFolders: [
         {

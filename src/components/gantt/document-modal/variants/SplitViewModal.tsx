@@ -1,7 +1,28 @@
 'use client';
 
 import { useState, memo, useCallback } from 'react';
-import { ChevronRight, ChevronDown, Upload, Download, FileText, Image, File, FolderPlus, MoreVertical, Trash2, ImagePlus, X, CalendarDays, Clock } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronDown,
+  Upload,
+  Download,
+  FileText,
+  Image,
+  File,
+  FolderPlus,
+  MoreVertical,
+  Trash2,
+  ImagePlus,
+  X,
+  CalendarDays,
+  Clock,
+  ClipboardList,
+  FolderOpen,
+  FilePen,
+  Camera,
+  ClipboardCheck,
+  FileIcon,
+} from 'lucide-react';
 import type { DocumentModalWithTaskProps, Folder, SubFolder, Document } from '../types';
 import {
   DropdownMenu,
@@ -30,6 +51,26 @@ const getFileIcon = (type: Document['type'], size: 'sm' | 'lg' = 'sm') => {
       return <File className={`${sizeClass} text-purple-400`} />;
     default:
       return <File className={`${sizeClass} text-gray-400`} />;
+  }
+};
+
+const getFolderIcon = (iconName: string, className: string = 'w-4 h-4') => {
+  const iconProps = { className };
+  switch (iconName) {
+    case 'clipboard-list':
+      return <ClipboardList {...iconProps} />;
+    case 'folder-open':
+      return <FolderOpen {...iconProps} />;
+    case 'file-pen':
+      return <FilePen {...iconProps} />;
+    case 'camera':
+      return <Camera {...iconProps} />;
+    case 'clipboard-check':
+      return <ClipboardCheck {...iconProps} />;
+    case 'file':
+      return <FileIcon {...iconProps} />;
+    default:
+      return <FolderOpen {...iconProps} />;
   }
 };
 
@@ -428,7 +469,7 @@ export const SplitViewModal = memo(function SplitViewModal({
               <div key={folder.id}>
                 <TreeItem
                   label={folder.name}
-                  icon={<span className="text-sm">{folder.icon}</span>}
+                  icon={getFolderIcon(folder.icon, 'w-4 h-4 text-gray-500')}
                   count={folder.count}
                   hasChildren={!!folder.subFolders?.length}
                   isExpanded={expandedFolders[folder.id]}
@@ -440,7 +481,7 @@ export const SplitViewModal = memo(function SplitViewModal({
                   <TreeItem
                     key={subFolder.id}
                     label={subFolder.name}
-                    icon={<span className="text-xs">📄</span>}
+                    icon={<FileText className="w-3.5 h-3.5 text-gray-400" />}
                     count={subFolder.documents.length}
                     depth={1}
                     isSelected={selectedItem?.subFolder?.id === subFolder.id}
