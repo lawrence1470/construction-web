@@ -16,9 +16,9 @@ export const lightTheme: Theme = createTheme({
       dark: '#D9DBE1',
     },
     error: {
-      main: '#D93C15', // $--destructive
-      light: '#E8644A',
-      dark: '#B02E0F',
+      main: '#DC2626', // aligned with --status-red — single destructive red app-wide
+      light: '#EF4444',
+      dark: '#B91C1C',
       contrastText: '#FFFFFF', // --destructive-foreground
     },
     warning: {
@@ -27,9 +27,11 @@ export const lightTheme: Theme = createTheme({
       dark: '#6E5210',
     },
     info: {
-      main: '#000066', // $--color-info-foreground
-      light: '#0000A3',
-      dark: '#000040',
+      // Blue-700 family — distinct from the navy primary, same hue family as
+      // dark mode's info and status.completed. Passes AA at 10px on badgeBg.
+      main: '#1D4ED8',
+      light: '#3B82F6',
+      dark: '#1E40AF',
     },
     success: {
       main: '#3D6B4F', // $--color-success-foreground
@@ -161,11 +163,12 @@ declare module '@mui/material/styles' {
       activeText: string;
       inProgressBg: string;
       inProgressText: string;
-      badge: string;
     };
     warm: {
       main: string;
       dark: string;
+      contrastText: string;
+      subtle: string;
     };
     grid: {
       line: string;
@@ -212,11 +215,12 @@ declare module '@mui/material/styles' {
       activeText?: string;
       inProgressBg?: string;
       inProgressText?: string;
-      badge?: string;
     };
     warm?: {
       main?: string;
       dark?: string;
+      contrastText?: string;
+      subtle?: string;
     };
     grid?: {
       line?: string;
@@ -246,10 +250,10 @@ lightTheme.palette.input = {
 lightTheme.palette.sidebar = {
   background: '#FFFFFF',   // $--sidebar
   border: '#D9DBE1',       // $--sidebar-border
-  indicator: '#2B2D42',    // active bar
+  indicator: '#d97706',    // active bar — signature amber accent
   activeBg: '#FFFFFF',     // $--card
   hoverBg: '#F0F0F3',      // $--sidebar-accent
-  activeItemBg: '#FFFFFF',
+  activeItemBg: 'rgba(217, 119, 6, 0.1)', // amber wash — matches --accent-warm-subtle
 };
 lightTheme.palette.accent = {
   dark: '#2B2D42',       // $--primary (dark navy)
@@ -265,11 +269,12 @@ lightTheme.palette.status = {
   activeText: '#166534',
   inProgressBg: '#fef3c7',
   inProgressText: '#92400e',
-  badge: '#E67E22',
 };
 lightTheme.palette.warm = {
-  main: '#d97706', // amber, matching --accent-warm
+  main: '#d97706', // amber, matching --accent-warm — the app's signature accent
   dark: '#b45309',
+  contrastText: '#FFFFFF',
+  subtle: 'rgba(217, 119, 6, 0.1)',
 };
 lightTheme.palette.grid = {
   line: 'rgba(0, 0, 0, 0.04)',
@@ -279,9 +284,10 @@ lightTheme.palette.timeline = {
   accentSubtle: 'rgba(43, 45, 66, 0.08)',
 };
 lightTheme.palette.docExplorer = {
-  destructiveMain: '#8B4049',
-  destructiveDark: '#7a3540',
-  destructiveLight: '#F5EDEC',
+  // Destructive shades share the error red family (was a one-off maroon)
+  destructiveMain: '#DC2626',
+  destructiveDark: '#B91C1C',
+  destructiveLight: '#FEE2E2',
   linkedGreen: '#059669',
   badgeBg: '#DFDFE6',
   aiPurple: '#A855F7',
@@ -314,9 +320,11 @@ export const darkTheme: Theme = createTheme({
       dark: '#D97706',
     },
     info: {
-      main: '#7170ff',
-      light: '#828fff',
-      dark: '#5e6ad2',
+      // Blue-400 family — same hue as light mode's info (luminance-flipped,
+      // not hue-flipped, per the theme parity rules).
+      main: '#60A5FA',
+      light: '#93C5FD',
+      dark: '#3B82F6',
     },
     success: {
       main: '#34D399',
@@ -426,10 +434,10 @@ darkTheme.palette.sidebar = {
   // main #0f1011 < cards/paper #191a1b.
   background: '#08090a',
   border: 'rgba(255,255,255,0.08)',
-  indicator: '#f7f8f8',
+  indicator: '#F59E0B',    // signature amber — matches --sidebar-indicator dark value
   activeBg: '#191a1b',
   hoverBg: 'rgba(255,255,255,0.04)',
-  activeItemBg: '#191a1b',
+  activeItemBg: 'rgba(245, 158, 11, 0.14)', // amber wash — matches --accent-warm-subtle
 };
 darkTheme.palette.accent = {
   dark: '#f7f8f8',
@@ -445,11 +453,12 @@ darkTheme.palette.status = {
   activeText: '#4ade80',
   inProgressBg: 'rgba(245,158,11,0.15)',
   inProgressText: '#fbbf24',
-  badge: '#E67E22',
 };
 darkTheme.palette.warm = {
   main: '#F59E0B',
   dark: '#D97706',
+  contrastText: '#0f1011',
+  subtle: 'rgba(245, 158, 11, 0.14)',
 };
 darkTheme.palette.grid = {
   line: 'rgba(255,255,255,0.06)',

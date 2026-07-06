@@ -214,7 +214,7 @@ This mirrors light mode where `background.paper` (`#FFFFFF`) sits above `backgro
 - `sidebar.{background, border, indicator, activeBg, hoverBg, activeItemBg}`
 - `status.{active, inProgress, onHold, completed, archived, activeBg, activeText, inProgressBg, inProgressText}`
 - `docExplorer.{destructiveMain, destructiveDark, destructiveLight, linkedGreen, badgeBg, aiPurple}`
-- `timeline.{accent, accentSubtle}`, `grid.line`, `warm.{main, dark}`
+- `timeline.{accent, accentSubtle}`, `grid.line`, `warm.{main, dark, contrastText, subtle}` — `warm` is the app's **signature amber accent** (active nav indicator, progress fills, live/attention states; NOT button fills — contained amber + white text fails AA)
 - `action.{hover, selected, focus, disabled, disabledBackground}`
 
 **CSS variables (use in inline `style`, raw CSS, template-literal styles):**
@@ -222,6 +222,9 @@ This mirrors light mode where `background.paper` (`#FFFFFF`) sits above `backgro
 - `--text-primary`, `--text-secondary`, `--text-muted`
 - `--border-color`, `--border-light`, `--accent-primary`, `--accent-subtle`, `--accent-contrast`
 - `--sidebar-*`, `--status-*`, `--gantt-*`, `--timeline-*`, `--grid-line`, `--radius-*`, `--focus-ring`
+- `--accent-warm`, `--accent-warm-hover`, `--accent-warm-contrast`, `--accent-warm-subtle` — signature amber accent (has dark-mode overrides)
+- `--shadow-card`, `--shadow-card-hover` — card elevation scale (dark values are stronger since shadows barely read on near-black); pair with a `translateY(-1px)` hover lift gated behind `prefers-reduced-motion`
+- `.stagger-in` utility class (globals.css) — direct children cascade in with capped nth-child delays; reduced-motion safe
 
 All of these flip when the user toggles dark mode. Do not hardcode a value when a token exists for it.
 

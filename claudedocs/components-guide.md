@@ -11,7 +11,8 @@ Conventions for adding, naming, and structuring components in `src/components/`.
 | `ui/` | Shared design-system primitives (Button, Label, dropdowns, image helpers, spinner, ProjectAvatar) |
 | `layout/` | App shell: Header, Sidebar, MobileDrawer, OrgSwitcher, ProjectSwitcher, UserMenu, PageHeader |
 | `providers/` | React context providers: ThemeRegistry, OrgProvider, ProjectProvider, LoadingProvider |
-| `dashboard/` | Dashboard feature components (StatsCards, ProjectsList, TeamActivity) |
+| `dashboard/` | Legacy placeholder components (ProjectsList, TeamActivity) — unused; superseded by `overview/` |
+| `overview/` | Project Overview command-center at `/[orgSlug]/projects/[projectSlug]/overview` (OverviewContent, OverviewHero, StatCard, Sparkline, ProgressRing, NeedsAttentionCard, SiteCard, OverviewCard shell, `hooks/useCountUp`). Data: new `project.overview` + existing `gantt.requirementStats`, `approval.listOverdueSlots`, `weather.getByLocation`. Org home (`/[orgSlug]`) now redirects here instead of the Gantt. |
 | `projects/` | Project CRUD dialogs and trees (AddProjectDialog, ProjectFormBody, ProjectsTree, ProjectDetailPanel, SidebarRowPreview) plus the portfolio surface at `/[orgSlug]/projects` (ProjectsView, ProjectsMap, ProjectsListPane) |
 | `documents/` | Document feature components (DocumentList, UploadDialog, FileDropzone) |
 | `approvals/` | Submittal/inspection approval workflow (ApprovalToggle, ReviewQueueContent, ReviewCard). The Review Queue's "Overdue" tab reads from `gantt.listSlots` / `approval.listOverdueSlots` so per-task slot due dates surface here. |
@@ -46,6 +47,8 @@ Pure, reusable utility functions live in `src/lib/utils/`. Current modules:
 | `files.tsx` | `getFileIcon(mimeType)` — returns Lucide icon for a file type |
 | `formatting.ts` | `formatRole(role)`, `formatFileSize(bytes)` — display formatting helpers |
 | `date.ts` | `parseLocalDate(yyyyMmDd)` — parse a `yyyy-MM-dd` string as a LOCAL date (not UTC) so date-picker round-trips and chips don't shift a day in negative-UTC timezones |
+| `weather.ts` | `getWeatherIcon(owmCode)` — OpenWeatherMap icon code → Phosphor icon + label (shared by header `LocationWeather` and overview `SiteCard`) |
+| `overviewStats.ts` | `computeOverviewStats(tasks, now)` — pure stats for the project Overview (counts, overdue, rolling weekly buckets, upcoming list); unit-tested, called by `project.overview` |
 
 ---
 
@@ -384,7 +387,7 @@ gap: 1.25    // 10px — sidebar nav items
 | Context | Size | Notes |
 |---|---|---|
 | Sidebar nav | `size={17}` | `weight={isActive ? 'fill' : 'regular'}` |
-| Header pills (weather, calendar, location) | `size={11}`–`size={12}` | `weight="bold"` |
+| Header site-conditions chip (weather + site date/time) | `size={10}`–`size={13}` | `weight="bold"` |
 | Tree folders / tasks | `size={14}` | |
 | Tree documents | `size={12}` | |
 | Utility (refresh, add) | `size={14}` | `weight="bold"` for action buttons |

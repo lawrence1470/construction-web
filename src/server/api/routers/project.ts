@@ -10,8 +10,18 @@ import { getTemplateData } from "@/server/gantt/templates";
 import { generateUniqueProjectSlug } from "@/server/api/helpers/generateProjectSlug";
 import { projectImageProxyUrl, withProxyImageUrl } from "@/lib/blobProxy";
 import { APPROVABLE_FOLDER_ID_LIST } from "@/lib/folders";
+import { computeOverviewStats } from "@/lib/utils/overviewStats";
 
 export const projectRouter = createTRPCRouter({
+  overview: projectProcedure.query(async ({ ctx }) => {
+    const tasks = await ctx.db.ganttTask.findMany({
+      where: { projectId: ctx.project.id },
+      select: { id: true, name: true, percentDone: true, endDate: true },
+    });
+
+    return computeOverviewStats(tasks, new Date());
+  }),
+
   list: protectedProcedure
     .input(z.object({ organizationId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {

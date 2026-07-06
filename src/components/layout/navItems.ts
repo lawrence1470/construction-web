@@ -29,6 +29,7 @@ export const orgNavItems: NavItem[] = [
 
 // Project-level navigation (requires a selected project)
 export const projectNavItems: NavItem[] = [
+  { id: 'overview', label: 'Overview', icon: 'Gauge', segment: 'overview', section: 'project-plan' },
   { id: 'gantt', label: 'Timeline', icon: 'ChartBar', segment: 'gantt', section: 'project-plan' },
   { id: 'files', label: 'Tree', icon: 'FolderSimple', segment: 'files', section: 'project-plan' },
   { id: 'document-explorer', label: 'Document Explorer', icon: 'FileMagnifyingGlass', segment: 'document-explorer', section: 'documents' },

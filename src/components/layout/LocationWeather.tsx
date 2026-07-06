@@ -1,22 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import {
-  Clock,
-  CalendarBlank,
-  Sun,
-  Moon,
-  Cloud,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  CloudFog,
-  Drop,
-  CaretDown,
-  type Icon,
-} from '@phosphor-icons/react';
+import { Drop, CaretDown, MapPin } from '@phosphor-icons/react';
 import { Box, Typography, Popover, ButtonBase } from '@mui/material';
 import { api } from '@/trpc/react';
+import { getWeatherIcon } from '@/lib/utils/weather';
 
 interface LocationWeatherProps {
   location: string;
@@ -43,23 +31,6 @@ function getLocalDate(timezoneOffset: number): string {
     month: 'short',
     day: 'numeric',
   });
-}
-
-/** Map OpenWeatherMap icon codes to Phosphor icons and labels */
-function getWeatherIcon(icon: string): { Icon: Icon; label: string } {
-  const code = icon.slice(0, 2);
-  switch (code) {
-    case '01': return icon.endsWith('n') ? { Icon: Moon, label: 'Clear' } : { Icon: Sun, label: 'Clear' };
-    case '02': return { Icon: Cloud, label: 'Partly cloudy' };
-    case '03': return { Icon: Cloud, label: 'Cloudy' };
-    case '04': return { Icon: Cloud, label: 'Overcast' };
-    case '09': return { Icon: CloudRain, label: 'Drizzle' };
-    case '10': return { Icon: CloudRain, label: 'Rain' };
-    case '11': return { Icon: CloudLightning, label: 'Thunderstorm' };
-    case '13': return { Icon: CloudSnow, label: 'Snow' };
-    case '50': return { Icon: CloudFog, label: 'Fog' };
-    default:   return { Icon: Cloud, label: 'Cloudy' };
-  }
 }
 
 /** Map weather icon code to a subtle background tint */
@@ -96,16 +67,6 @@ function getWeatherTintStrong(icon: string): string {
   }
 }
 
-const chipSx = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 0.625,
-  px: 1.25,
-  py: 0.5,
-  borderRadius: 'var(--radius-pill)',
-  bgcolor: 'action.hover',
-} as const;
-
 const labelSx = {
   fontSize: '0.6875rem',
   fontWeight: 500,
@@ -113,6 +74,25 @@ const labelSx = {
   lineHeight: 1,
   whiteSpace: 'nowrap',
 } as const;
+
+/** Middot separator between chip segments */
+function Sep() {
+  return (
+    <Box
+      component="span"
+      aria-hidden="true"
+      sx={{
+        fontSize: '0.6875rem',
+        color: 'text.secondary',
+        opacity: 0.45,
+        lineHeight: 1,
+        userSelect: 'none',
+      }}
+    >
+      ·
+    </Box>
+  );
+}
 
 export default function LocationWeather({ location, organizationId }: LocationWeatherProps) {
   const { data: weather } = api.weather.getByLocation.useQuery(
@@ -147,123 +127,90 @@ export default function LocationWeather({ location, organizationId }: LocationWe
   const forecast = weather?.forecast ?? [];
   const hasForecast = forecast.length > 0;
 
+  if (!weather || !weatherInfo) return null;
+
+  const chipTitle = localTime
+    ? `${weatherInfo.label} — local date & time at ${location}`
+    : `${weatherInfo.label} at ${location}`;
+
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
-      {/* Weather chip — condition-tinted background, click to open forecast */}
-      {weather && weatherInfo && (
-        <ButtonBase
-          ref={chipRef}
-          onClick={hasForecast ? () => setPopoverOpen(true) : undefined}
-          disabled={!hasForecast}
-          aria-label={hasForecast ? 'Show 5-day forecast' : undefined}
+    <>
+      {/* Single site-conditions chip: weather + site-local date & time */}
+      <ButtonBase
+        ref={chipRef}
+        onClick={hasForecast ? () => setPopoverOpen(true) : undefined}
+        disabled={!hasForecast}
+        title={chipTitle}
+        aria-label={hasForecast ? `${chipTitle}. Show ${forecast.length}-day forecast` : chipTitle}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.75,
+          width: 'fit-content',
+          flexShrink: 0,
+          px: 1.25,
+          py: 0.5,
+          borderRadius: 'var(--radius-pill)',
+          bgcolor: getWeatherTint(weather.icon),
+          opacity: 1,
+          transition: 'background-color 0.15s ease, opacity 0.3s ease',
+          cursor: hasForecast ? 'pointer' : 'default',
+          '&:hover': hasForecast
+            ? { bgcolor: getWeatherTintStrong(weather.icon) }
+            : undefined,
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
+          '@keyframes fadeIn': {
+            from: { opacity: 0 },
+            to: { opacity: 1 },
+          },
+          animation: 'fadeIn 0.3s ease',
+        }}
+      >
+        <weatherInfo.Icon size={13} weight="bold" style={{ flexShrink: 0, opacity: 0.65 }} />
+        <Typography
           sx={{
-            ...chipSx,
-            bgcolor: getWeatherTint(weather.icon),
-            opacity: 1,
-            transition: 'background-color 0.15s ease, transform 0.15s ease, opacity 0.3s ease',
-            cursor: hasForecast ? 'pointer' : 'default',
-            '&:hover': hasForecast
-              ? {
-                  bgcolor: getWeatherTintStrong(weather.icon),
-                  transform: 'translateY(-1px)',
-                }
-              : undefined,
-            '&:focus-visible': {
-              outline: '2px solid',
-              outlineColor: 'primary.main',
-              outlineOffset: 2,
-            },
-            '@keyframes fadeIn': {
-              from: { opacity: 0 },
-              to: { opacity: 1 },
-            },
-            animation: 'fadeIn 0.3s ease',
+            ...labelSx,
+            fontWeight: 600,
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.01em',
           }}
         >
-          <weatherInfo.Icon size={13} weight="bold" style={{ flexShrink: 0, opacity: 0.65 }} />
-          <Typography
-            sx={{
-              ...labelSx,
-              fontWeight: 600,
-              fontVariantNumeric: 'tabular-nums',
-              letterSpacing: '-0.01em',
+          {weather.temp}°F
+        </Typography>
+        {localDate && (
+          <>
+            <Sep />
+            <Typography sx={{ ...labelSx, fontVariantNumeric: 'tabular-nums' }}>
+              {localDate}
+            </Typography>
+          </>
+        )}
+        {localTime && (
+          <>
+            <Sep />
+            <Typography sx={{ ...labelSx, fontVariantNumeric: 'tabular-nums' }}>
+              {localTime}
+            </Typography>
+          </>
+        )}
+        {hasForecast && (
+          <CaretDown
+            size={10}
+            weight="bold"
+            style={{
+              flexShrink: 0,
+              opacity: 0.5,
+              marginLeft: 2,
+              transition: 'transform 0.15s ease',
+              transform: popoverOpen ? 'rotate(180deg)' : 'rotate(0deg)',
             }}
-          >
-            {weather.temp}°F
-          </Typography>
-          <Typography
-            sx={{
-              ...labelSx,
-              fontSize: '0.625rem',
-              fontWeight: 400,
-              color: 'text.secondary',
-            }}
-          >
-            {weatherInfo.label}
-          </Typography>
-          {hasForecast && (
-            <CaretDown
-              size={10}
-              weight="bold"
-              style={{
-                flexShrink: 0,
-                opacity: 0.5,
-                marginLeft: 2,
-                transition: 'transform 0.15s ease',
-                transform: popoverOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              }}
-            />
-          )}
-        </ButtonBase>
-      )}
-
-      {/* Date chip — in the project's local timezone */}
-      {localDate && (
-        <Box
-          sx={{
-            ...chipSx,
-            '@keyframes fadeIn': {
-              from: { opacity: 0 },
-              to: { opacity: 1 },
-            },
-            animation: 'fadeIn 0.3s ease',
-          }}
-        >
-          <CalendarBlank size={12} weight="bold" style={{ flexShrink: 0, opacity: 0.5 }} />
-          <Typography
-            sx={{
-              ...labelSx,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {localDate}
-          </Typography>
-        </Box>
-      )}
-
-      {/* Time chip */}
-      {localTime && (
-        <Box
-          sx={{
-            ...chipSx,
-            '@keyframes fadeIn': {
-              from: { opacity: 0 },
-              to: { opacity: 1 },
-            },
-            animation: 'fadeIn 0.3s ease',
-          }}
-        >
-          <Clock size={12} weight="bold" style={{ flexShrink: 0, opacity: 0.5 }} />
-          <Typography
-            sx={{
-              ...labelSx,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {localTime}
-          </Typography>
-        </Box>
-      )}
+          />
+        )}
+      </ButtonBase>
 
       {/* 5-day forecast popover */}
       <Popover
@@ -277,6 +224,7 @@ export default function LocationWeather({ location, organizationId }: LocationWe
             sx: {
               mt: 1,
               minWidth: 280,
+              maxWidth: 340,
               borderRadius: '10px',
               border: '1px solid',
               borderColor: 'divider',
@@ -286,6 +234,24 @@ export default function LocationWeather({ location, organizationId }: LocationWe
         }}
       >
         <Box sx={{ px: 1.75, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0, mb: 0.625 }}>
+            <MapPin size={10} weight="bold" style={{ flexShrink: 0, opacity: 0.55 }} />
+            <Typography
+              title={location}
+              sx={{
+                fontSize: '0.6875rem',
+                fontWeight: 500,
+                color: 'text.secondary',
+                lineHeight: 1.2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {location}
+              {localTime ? ` — site local time` : ''}
+            </Typography>
+          </Box>
           <Typography
             sx={{
               fontSize: '0.5625rem',
@@ -383,6 +349,6 @@ export default function LocationWeather({ location, organizationId }: LocationWe
           })}
         </Box>
       </Popover>
-    </Box>
+    </>
   );
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { Settings, LogOut, ChevronRight } from 'lucide-react';
-import { ChartBar, FolderSimple, FileMagnifyingGlass, GearSix, UsersThree, MapPin, X, type Icon } from '@phosphor-icons/react';
+import { ChartBar, FolderSimple, FileMagnifyingGlass, GearSix, UsersThree, MapPin, Gauge, SealCheck, X, type Icon } from '@phosphor-icons/react';
 import { Drawer, Box, IconButton, Typography } from '@mui/material';
 import {
   DropdownMenu,
@@ -33,6 +33,8 @@ const iconMap: Record<string, Icon> = {
   GearSix,
   UsersThree,
   MapPin,
+  Gauge,
+  SealCheck,
 };
 
 interface MobileDrawerProps {
@@ -233,7 +235,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                         py: 0.875,
                         borderRadius: '8px',
                         position: 'relative',
-                        transition: 'all 0.15s ease',
+                        transition: 'background-color 0.15s ease, color 0.15s ease',
                         bgcolor: isActive ? 'sidebar.activeItemBg' : 'transparent',
                         color: isActive ? 'text.primary' : 'text.secondary',
                         opacity: isDisabled ? 0.35 : 1,
@@ -281,7 +283,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                         {item.label}
                       </Typography>
 
-                      {badgeCount !== null && badgeCount > 0 && !isActive && (
+                      {badgeCount !== null && badgeCount > 0 && (
                         <Typography
                           sx={{
                             fontSize: '0.6875rem',
