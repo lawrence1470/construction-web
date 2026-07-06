@@ -76,13 +76,13 @@ export function createGanttConfig(
       autoSyncTimeout: 500,
       taskModelClass: AppTaskModel,
       resetUndoRedoQueuesAfterLoad: true,
-      // Pin each task at its own date with an implicit `startnoearlier`
-      // constraint instead of rescheduling unconstrained tasks to the project
-      // start. This lets the project start date (the scheduling floor) be set
-      // EARLIER than existing tasks — moving the left wall without yanking the
-      // bars onto it. Without this, lowering project.startDate would collapse
-      // unconstrained tasks back to the new start on load.
-      autoSetConstraints: true,
+      // NOTE: autoSetConstraints is intentionally OFF (Path B). When on, Bryntum
+      // stamps a `startnoearlier` constraint on every unconstrained task pinned
+      // to its own start date — which blocks dragging the bar EARLIER (you can
+      // only move it later). That made day-to-day editing feel broken. Instead,
+      // the load path (gantt.load) holds independent leaf tasks in place by
+      // marking them manuallyScheduled, so they keep their dates and drag freely
+      // in both directions while dependency-linked tasks stay engine-scheduled.
 
       stm: {
         autoRecord: true,

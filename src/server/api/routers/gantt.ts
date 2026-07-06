@@ -256,6 +256,38 @@ export const ganttRouter = createTRPCRouter({
         if (filled > 0) filledRequirementCounts.set(task.id, filled);
       }
 
+      // Path B scheduling relaxation (see ganttConfig.ts — autoSetConstraints is
+      // OFF). Two adjustments, re-derived on every load so no DB migration is
+      // needed and reverting is code-only:
+      //   1. Drop the legacy auto-stamped `startnoearlierthan` walls. These were
+      //      pinned to each task's own start date and blocked dragging a bar
+      //      earlier. User-set constraints (any other type) are left untouched.
+      //   2. Hold independent LEAF tasks at their date by marking them
+      //      manuallyScheduled. Without a wall, an auto-scheduled task with no
+      //      predecessor reschedules to the project floor on load (the "bars pile
+      //      up" problem). Tasks with an incoming dependency are held by their
+      //      predecessor, and parents roll up from their children — neither needs
+      //      this, so both stay engine-scheduled and dependency auto-push is kept.
+      const parentIds = new Set(
+        tasks.map((t) => t.parentId).filter((id): id is string => id !== null),
+      );
+      const tasksWithIncomingDep = new Set(dependencies.map((d) => d.toTaskId));
+      for (const task of tasks) {
+        if (task.constraintType === "startnoearlierthan") {
+          task.constraintType = null;
+          task.constraintDate = null;
+        }
+        const isLeaf = !parentIds.has(task.id);
+        if (
+          isLeaf &&
+          !tasksWithIncomingDep.has(task.id) &&
+          !task.constraintType &&
+          !task.manuallyScheduled
+        ) {
+          task.manuallyScheduled = true;
+        }
+      }
+
       // Build hierarchical task tree
       const taskTree = buildTaskTree(tasks, needsReviewCounts, filledRequirementCounts);
 
