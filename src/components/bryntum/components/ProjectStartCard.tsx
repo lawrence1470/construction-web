@@ -92,7 +92,8 @@ export default function ProjectStartCard({ projectId, canEdit, getGanttInstance 
       void utils.project.list.invalidate();
 
       // Move the live scheduling floor so bars can immediately slide to it —
-      // no page reload. autoSetConstraints keeps tasks pinned at their dates.
+      // no page reload. Independent leaf tasks are manuallyScheduled (see
+      // gantt.load), so lowering the floor no longer collapses them onto it.
       if (draft) {
         const gantt = getGanttInstance();
         if (gantt?.project) {
