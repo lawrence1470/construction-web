@@ -368,7 +368,7 @@ export function createGanttConfig(
           + '</svg>'
         : '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">'
           + '<circle cx="7" cy="7" r="5.5" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'
-          + `<circle cx="7" cy="7" r="5.5" fill="none" stroke="#1e40af" stroke-width="2" stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 7 7)" stroke-linecap="round"/>`
+          + `<circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 7 7)" stroke-linecap="round"/>`
           + '</svg>';
 
       const chipClass = `gantt-task-bar-chip${isEmpty ? ' is-empty' : ''}`;

@@ -156,7 +156,7 @@ export default function VerifyEmailPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
+                  color: 'warm.contrastText',
                 }}
               >
                 <LogoIcon size={28} />
@@ -190,12 +190,12 @@ export default function VerifyEmailPage() {
                 variant="contained"
                 size="large"
                 endIcon={<ArrowRight />}
-                sx={{
-                  bgcolor: 'warm.main',
-                  color: 'white',
+                sx={(theme) => ({
+                  bgcolor: theme.palette.mode === 'light' ? theme.palette.warm.dark : theme.palette.warm.main,
+                  color: theme.palette.warm.contrastText,
                   py: 2,
-                  '&:hover': { bgcolor: 'warm.dark' },
-                }}
+                  '&:hover': { bgcolor: theme.palette.mode === 'light' ? '#92400e' : theme.palette.warm.dark },
+                })}
               >
                 Send verification code
               </Button>
@@ -226,13 +226,13 @@ export default function VerifyEmailPage() {
                   variant="contained"
                   size="large"
                   endIcon={<ArrowRight />}
-                  sx={{
-                    bgcolor: 'warm.main',
-                    color: 'white',
+                  sx={(theme) => ({
+                    bgcolor: theme.palette.mode === 'light' ? theme.palette.warm.dark : theme.palette.warm.main,
+                    color: theme.palette.warm.contrastText,
                     py: 2,
-                    '&:hover': { bgcolor: 'warm.dark' },
+                    '&:hover': { bgcolor: theme.palette.mode === 'light' ? '#92400e' : theme.palette.warm.dark },
                     '&.Mui-disabled': { opacity: 0.5 },
-                  }}
+                  })}
                 >
                   {loading ? 'Verifying...' : 'Verify email'}
                 </Button>

@@ -28,7 +28,7 @@ function NumberDot({ index }: { index: number }) {
         height: 18,
         borderRadius: '50%',
         bgcolor: dotColor(index),
-        color: '#fff',
+        color: index >= 2 ? 'var(--accent-contrast, #fff)' : '#fff',
         fontSize: '0.6875rem',
         fontWeight: 800,
         lineHeight: '18px',
@@ -64,7 +64,7 @@ export default function TaskLinkingBar({ selection, onLink, onClear }: TaskLinki
         bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
-        boxShadow: '0 8px 28px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)',
+        boxShadow: 'var(--shadow-overlay)',
         animation: 'gantt-link-bar-in 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2) both',
         '@keyframes gantt-link-bar-in': {
           from: { opacity: 0, transform: 'translate(-50%, 8px)' },

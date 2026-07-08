@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { Download, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { api } from '@/trpc/react';
 import { getFileIcon } from '@/lib/utils/files';
 import { formatFileSize } from '@/lib/utils/formatting';
 import { Box, Typography, Stack, Skeleton, IconButton } from '@mui/material';
+import DeleteDocumentDialog from './DeleteDocumentDialog';
 
 interface DocumentListProps {
   organizationId: string;
@@ -21,7 +23,6 @@ export function DocumentList({
   taskId,
   folderId,
 }: DocumentListProps) {
-  const utils = api.useUtils();
   const { data: documents, isLoading } = api.document.listByFolder.useQuery({
     organizationId,
     projectId,
@@ -29,19 +30,12 @@ export function DocumentList({
     folderId,
   });
 
-  const deleteMutation = api.document.delete.useMutation({
-    onSuccess: () => {
-      void utils.document.listByFolder.invalidate();
-      void utils.document.countByTask.invalidate();
-    },
-  });
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const handleDelete = (e: React.MouseEvent, documentId: string) => {
+  const handleDelete = (e: React.MouseEvent, documentId: string, documentName: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this document?')) {
-      deleteMutation.mutate({ documentId, organizationId });
-    }
+    setDeleteTarget({ id: documentId, name: documentName });
   };
 
   if (isLoading) {
@@ -131,8 +125,7 @@ export function DocumentList({
           <IconButton
             className="delete-button"
             size="small"
-            onClick={(e) => handleDelete(e, doc.id)}
-            disabled={deleteMutation.isPending}
+            onClick={(e) => handleDelete(e, doc.id, doc.name)}
             sx={{
               flexShrink: 0,
               opacity: 0,
@@ -148,10 +141,19 @@ export function DocumentList({
           <Download
             size={16}
             className="download-icon"
-            style={{ color: 'var(--text-disabled)', flexShrink: 0 }}
+            style={{ color: 'var(--text-muted)', flexShrink: 0 }}
           />
         </Box>
       ))}
+      {deleteTarget && (
+        <DeleteDocumentDialog
+          open
+          onClose={() => setDeleteTarget(null)}
+          documentId={deleteTarget.id}
+          documentName={deleteTarget.name}
+          organizationId={organizationId}
+        />
+      )}
     </Stack>
   );
 }

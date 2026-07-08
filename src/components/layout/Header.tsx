@@ -85,7 +85,7 @@ export default function Header({ onMenuOpen }: HeaderProps) {
         <DropdownMenu open={notifMenuOpen} onOpenChange={setNotifMenuOpen}>
           <DropdownMenuTrigger asChild>
             <IconButton
-              aria-label="Notifications"
+              aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
               sx={{
                 width: 36,
                 height: 36,
@@ -100,21 +100,32 @@ export default function Header({ onMenuOpen }: HeaderProps) {
                 <Box
                   sx={{
                     position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    minWidth: 8,
-                    height: 8,
+                    top: 3,
+                    right: 3,
+                    minWidth: 15,
+                    height: 15,
+                    px: '3px',
                     bgcolor: 'error.main',
-                    borderRadius: '50%',
+                    color: 'error.contrastText',
+                    borderRadius: '999px',
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontVariantNumeric: 'tabular-nums',
                     border: '1.5px solid',
                     borderColor: 'background.paper',
+                    pointerEvents: 'none',
                   }}
-                />
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Box>
               )}
             </IconButton>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-80" style={{ maxHeight: 400, overflow: 'auto' }}>
+          <DropdownMenuContent align="end" slotProps={{ paper: { sx: { width: 320, maxHeight: 400, overflow: 'auto' } } }}>
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Notifications</Typography>
               {unreadCount > 0 && (

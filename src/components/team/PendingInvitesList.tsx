@@ -34,10 +34,6 @@ export default function PendingInvitesList({
 
   const pendingInvitations = invitations.filter((inv) => inv.status === 'pending');
 
-  if (pendingInvitations.length === 0) {
-    return null;
-  }
-
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
@@ -70,6 +66,10 @@ export default function PendingInvitesList({
         ))}
       </Stack>
     );
+  }
+
+  if (pendingInvitations.length === 0) {
+    return null;
   }
 
   return (
@@ -143,8 +143,13 @@ export default function PendingInvitesList({
               <Button
                 variant="text"
                 size="small"
-                loading={isResending}
+                loading={
+                  isResending && resendInvitation.variables?.invitationId === invitation.id
+                }
                 loadingPosition="start"
+                disabled={
+                  isRevoking && revokeInvitation.variables?.invitationId === invitation.id
+                }
                 onClick={() =>
                   resendInvitation.mutate({
                     projectId,
@@ -157,8 +162,13 @@ export default function PendingInvitesList({
               <Button
                 variant="text"
                 size="small"
-                loading={isRevoking}
+                loading={
+                  isRevoking && revokeInvitation.variables?.invitationId === invitation.id
+                }
                 loadingPosition="start"
+                disabled={
+                  isResending && resendInvitation.variables?.invitationId === invitation.id
+                }
                 onClick={() =>
                   revokeInvitation.mutate({
                     projectId,

@@ -55,6 +55,7 @@ export default function ProjectsListPane({
         border: '1px solid',
         borderColor: 'divider',
         borderRadius: '12px',
+        boxShadow: 'var(--shadow-card)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -202,15 +203,7 @@ function ProjectRow({
 
   return (
     <Box
-      role="button"
-      tabIndex={0}
       onClick={() => onSelect(isSelected ? null : project.id)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect(isSelected ? null : project.id);
-        }
-      }}
       sx={{
         position: 'relative',
         display: 'flex',
@@ -254,14 +247,19 @@ function ProjectRow({
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.625, minWidth: 0 }}>
           <Typography
+            component={Link}
+            href={`/${orgSlug}/projects/${project.slug}/overview`}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
             sx={{
               fontSize: '0.8125rem',
               fontWeight: isActive || isSelected ? 550 : 500,
               color: 'text.primary',
+              textDecoration: 'none',
               lineHeight: 1.2,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              '&:hover': { textDecoration: 'underline' },
             }}
           >
             {project.name}
@@ -273,9 +271,9 @@ function ProjectRow({
                   width: 6,
                   height: 6,
                   borderRadius: '999px',
-                  bgcolor: '#f59e0b',
+                  bgcolor: 'warm.main',
                   flexShrink: 0,
-                  boxShadow: `0 0 0 2px ${alpha('#f59e0b', 0.2)}`,
+                  boxShadow: `0 0 0 2px ${alpha(theme.palette.warm.main, 0.2)}`,
                 }}
               />
             </Tooltip>

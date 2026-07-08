@@ -66,6 +66,11 @@ export default function IdentityMenu() {
               borderRadius: '9px',
               transition: 'background-color 0.15s',
               '&:hover': { bgcolor: 'action.hover' },
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
             }}
           >
             {user && <UserAvatar user={user} size={32} borderRadius="8px" />}

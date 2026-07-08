@@ -10,6 +10,10 @@ const mocks = vi.hoisted(() => ({
   isPending: false,
 }));
 
+vi.mock("@/hooks/useSnackbar", () => ({
+  useSnackbar: () => ({ showSnackbar: vi.fn() }),
+}));
+
 vi.mock("@/trpc/react", () => ({
   api: {
     approval: {

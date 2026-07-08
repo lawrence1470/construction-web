@@ -277,7 +277,6 @@ export default function TaskInfoDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '12px',
           boxShadow: '0px 8px 32px rgba(0,0,0,0.12)',
           overflow: 'hidden',
         },

@@ -23,7 +23,7 @@ export default function CategoryBadge({ folderId, showIcon = false }: CategoryBa
           display: 'inline-flex',
           alignItems: 'center',
           borderRadius: '999px',
-          bgcolor: 'action.hover',
+          bgcolor: 'action.selected',
           px: 1,
           py: '2px',
         }}

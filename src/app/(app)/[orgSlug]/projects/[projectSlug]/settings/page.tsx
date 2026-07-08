@@ -393,7 +393,8 @@ function ProjectSettingsForm({
               role="radiogroup" aria-label="Project image type"
               sx={{
                 display: 'inline-flex', borderRadius: '8px',
-                bgcolor: alpha(theme.palette.divider, 0.08), p: '3px', mb: 1.5,
+                // divider is already translucent — alpha()-ing it again renders invisible
+                bgcolor: 'action.selected', p: '3px', mb: 1.5,
               }}
             >
             {(['icon', 'photo'] as const).map((mode) => {
@@ -410,10 +411,12 @@ function ProjectSettingsForm({
                     fontFamily: 'inherit', letterSpacing: '0.02em',
                     transition: 'all 0.15s ease',
                     bgcolor: isActive ? 'background.paper' : 'transparent',
-                    color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
-                    boxShadow: isActive ? `0 1px 3px ${alpha('#000', 0.08)}` : 'none',
+                    outline: isActive ? '1px solid' : 'none',
+                    outlineColor: 'divider',
+                    color: isActive ? theme.palette.text.primary : theme.palette.text.secondary,
+                    boxShadow: isActive ? 'var(--shadow-card)' : 'none',
                     '&:hover': {
-                      color: isActive ? theme.palette.primary.main : theme.palette.text.primary,
+                      color: theme.palette.text.primary,
                     },
                   }}
                 >
@@ -434,14 +437,14 @@ function ProjectSettingsForm({
                   sx={{
                     display: 'flex', alignItems: 'center', gap: 1,
                     px: 1.5, py: 1, mb: 2.5, borderRadius: '8px',
-                    border: '1.5px solid', borderColor: alpha(theme.palette.divider, 0.3),
-                    bgcolor: alpha(theme.palette.divider, 0.06),
+                    border: '1.5px solid', borderColor: 'divider',
+                    bgcolor: 'action.hover',
                     cursor: 'pointer', fontFamily: 'inherit',
                     fontSize: '0.8125rem', fontWeight: 500, color: 'text.primary',
                     transition: 'all 0.15s ease',
                     '&:hover': {
                       borderColor: alpha(theme.palette.primary.main, 0.4),
-                      bgcolor: alpha(theme.palette.divider, 0.1),
+                      bgcolor: 'action.selected',
                     },
                   }}
                 >
@@ -481,7 +484,7 @@ function ProjectSettingsForm({
                               '&:hover': {
                                 bgcolor: isSelected
                                   ? alpha(theme.palette.primary.main, 0.12)
-                                  : alpha(theme.palette.divider, 0.12),
+                                  : theme.palette.action.hover,
                                 color: isSelected ? theme.palette.primary.main : theme.palette.text.primary,
                               },
                             }}
@@ -522,14 +525,14 @@ function ProjectSettingsForm({
                     border: '1.5px dashed',
                     borderColor: uploadError ? theme.palette.error.main
                       : isDragActive ? theme.palette.primary.main
-                      : alpha(theme.palette.divider, 0.4),
+                      : theme.palette.divider,
                     borderRadius: '10px',
                     cursor: isUploading ? 'not-allowed' : 'pointer',
                     bgcolor: isDragActive ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
                     opacity: isUploading ? 0.6 : 1,
                     transition: 'all 0.15s ease',
                     '&:hover': {
-                      borderColor: isUploading ? alpha(theme.palette.divider, 0.4) : alpha(theme.palette.primary.main, 0.4),
+                      borderColor: isUploading ? theme.palette.divider : alpha(theme.palette.primary.main, 0.4),
                       bgcolor: isUploading ? 'transparent' : alpha(theme.palette.primary.main, 0.02),
                     },
                   }}>

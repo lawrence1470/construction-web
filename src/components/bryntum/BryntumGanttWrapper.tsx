@@ -76,6 +76,56 @@ function syncLockedSubGridWidth(gantt: any) {
   }
 }
 
+// Land the initial viewport on actual content. The config's static time window
+// opens "3 months back" from today, which paints an empty canvas whenever the
+// whole plan lives in the future or the past. Centers today when the plan
+// spans it, otherwise the earliest scheduled task. scrollToDate is the
+// proven-safe scroll path in this codebase (scrollTaskIntoView is the one that
+// corrupts the time-axis header — see handleScrollToToday in useGanttControls).
+//
+// Self-verifying: during startup Bryntum's infinite-scroll axis recentering
+// can silently undo an early scroll, and exactly when varies run to run. So
+// after each attempt we check whether the target date actually ended up in
+// the visible range and retry (bounded) if not.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function scrollGanttToFirstContent(gantt: any, attempt = 0) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (!gantt || gantt.isDestroyed) return;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+  const records: Array<{ startDate?: unknown; endDate?: unknown }> = gantt.taskStore?.records ?? [];
+  let minStart: Date | null = null;
+  let maxEnd: Date | null = null;
+  for (const record of records) {
+    if (record.startDate instanceof Date && (!minStart || record.startDate < minStart)) minStart = record.startDate;
+    if (record.endDate instanceof Date && (!maxEnd || record.endDate > maxEnd)) maxEnd = record.endDate;
+  }
+  const retry = () => {
+    if (attempt < 5) setTimeout(() => scrollGanttToFirstContent(gantt, attempt + 1), 300);
+  };
+  if (!minStart) {
+    // Store not populated yet (or no scheduled tasks) — retry a few times,
+    // then leave the default window alone.
+    retry();
+    return;
+  }
+  const now = new Date();
+  const target = maxEnd && now >= minStart && now <= maxEnd ? now : minStart;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  gantt.scrollToDate?.(target, { block: 'center' });
+  setTimeout(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (gantt.isDestroyed) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+    const visible: { startDate?: Date; endDate?: Date } | undefined = gantt.visibleDateRange;
+    const landed =
+      visible?.startDate instanceof Date &&
+      visible?.endDate instanceof Date &&
+      target >= visible.startDate &&
+      target <= visible.endDate;
+    if (!landed) retry();
+  }, 250);
+}
+
 interface BryntumGanttWrapperProps {
   projectId?: string;
   isVisible?: boolean;
@@ -117,7 +167,10 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
   const columnStorageKey = projectId ? `bryntum:columns:visible:${projectId}` : null;
   const [columnsAnchor, setColumnsAnchor] = useState<HTMLElement | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<Record<ColumnId, boolean>>(() => {
-    const defaults: Record<ColumnId, boolean> = { name: true, startDate: true, endDate: true, duration: true };
+    // Start/End default hidden — the bars already show the dates, and the grid
+    // otherwise eats ~45% of the width. The column picker brings them back;
+    // a stored preference (spread below) always wins over these defaults.
+    const defaults: Record<ColumnId, boolean> = { name: true, startDate: false, endDate: false, duration: true };
     if (typeof window === 'undefined' || !columnStorageKey) return defaults;
     try {
       const raw = window.localStorage.getItem(columnStorageKey);
@@ -619,8 +672,23 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
       setLoadError(null);
     },
     onLoadComplete: () => {
+      const firstLoad = !hasLoadedOnceRef.current;
       hasLoadedOnceRef.current = true;
       setIsLoading(false);
+      // First load only — background reloads (stale-refresh, approval-driven)
+      // must not yank the viewport away from where the user is working.
+      // Wait for the scheduling engine to finish normalizing dates, then give
+      // the infinite-scroll time axis a beat to settle — a bare setTimeout(0)
+      // races Bryntum's initial axis recentering and the scroll gets undone.
+      if (firstLoad) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+        const settled: unknown = getGanttInstance()?.project?.commitAsync?.();
+        void Promise.resolve(settled)
+          .catch(() => undefined)
+          .then(() => {
+            setTimeout(() => scrollGanttToFirstContent(getGanttInstance()), 150);
+          });
+      }
     },
     onLoadError: (error: string) => {
       // Only surface the blocking error overlay on the initial load. A failed
@@ -931,8 +999,11 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
           height: 18px;
           padding: 0 6px;
           border-radius: 999px;
-          background: #f59e0b;
-          color: #fff;
+          /* warm-hover + warm-contrast is the AA-passing amber pairing in both
+             modes (light: dark amber + white; dark: light amber + near-black).
+             Plain --accent-warm + white fails contrast — see design-systems.md. */
+          background: var(--accent-warm-hover);
+          color: var(--accent-warm-contrast);
           font-size: 10px;
           font-weight: 700;
           line-height: 1;
@@ -970,8 +1041,11 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
           gap: 4px;
           padding: 2px 8px 2px 4px;
           border-radius: 999px;
+          /* Fixed pairing: the chip is always a white pill on the navy bar, so
+             its text (and the donut arc via currentColor) stays navy in both
+             modes — do NOT use --accent-primary here (near-white in dark). */
           background: rgba(255, 255, 255, 0.95);
-          color: #1e40af;
+          color: #2B2D42;
           font-size: 10px;
           font-weight: 700;
           line-height: 1.4;
@@ -1042,7 +1116,7 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
         .bryntum-gantt-container {
           --b-row-reorder-indicator-size: 3px;
           --b-row-reorder-indicator-color: var(--accent-primary);
-          --b-row-reorder-indicator-invalid-color: #ef4444;
+          --b-row-reorder-indicator-invalid-color: var(--status-red);
         }
         /* Lift the row being dragged so the pickup reads clearly. */
         .b-row-reorder-proxy {

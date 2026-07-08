@@ -156,7 +156,7 @@ export default function MembersList({
                 '&:hover': {
                   bgcolor: 'action.hover',
                   borderColor: 'divider',
-                  boxShadow: `0 2px 8px ${alpha(theme.palette.common.black, 0.05)}`,
+                  boxShadow: 'var(--shadow-card-hover)',
                 },
               }),
             }}
@@ -178,6 +178,29 @@ export default function MembersList({
                 >
                   {member.user.name || member.user.email}
                 </Typography>
+                <Tooltip
+                  title={getRoleDescription(orgRoleByUserId?.[member.user.id])}
+                  arrow
+                  placement="top"
+                >
+                  <Box
+                    sx={{
+                      px: 1,
+                      py: 0.25,
+                      borderRadius: '999px',
+                      fontSize: '0.6875rem',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      color: theme.palette.primary.main,
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                      cursor: 'default',
+                    }}
+                  >
+                    {formatRole(orgRoleByUserId?.[member.user.id] ?? member.role)}
+                  </Box>
+                </Tooltip>
                 {member.user.id === currentUserId && (
                   <Box
                     sx={{
@@ -208,19 +231,6 @@ export default function MembersList({
               >
                 {member.user.email}
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  color: 'text.secondary',
-                  mt: 0.25,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {getRoleDescription(orgRoleByUserId?.[member.user.id])}
-              </Typography>
-
               {projectsByUserId &&
                 (orgRoleByUserId?.[member.user.id] === 'owner' ? (
                   <OwnerProjectsBadge

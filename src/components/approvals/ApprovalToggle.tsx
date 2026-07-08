@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { Box, CircularProgress, Tooltip, Typography } from '@mui/material';
-import { Check } from 'lucide-react';
+import { Check } from '@phosphor-icons/react';
 import { api } from '@/trpc/react';
 import { canApproveDocuments } from '@/lib/permissions';
+import { useSnackbar } from '@/hooks/useSnackbar';
 
 type ApprovalStatus = 'approved' | 'unapproved' | string;
 
@@ -26,6 +27,7 @@ export default function ApprovalToggle({
   size = 'md',
 }: ApprovalToggleProps) {
   const utils = api.useUtils();
+  const { showSnackbar } = useSnackbar();
   const canApprove = canApproveDocuments(memberRole);
   const [optimistic, setOptimistic] = useState<ApprovalStatus | null>(null);
 
@@ -41,8 +43,9 @@ export default function ApprovalToggle({
       void utils.document.listByFolder.invalidate();
       void utils.document.listByTask.invalidate();
     },
-    onError: () => {
+    onError: (error) => {
       setOptimistic(null);
+      showSnackbar(error.message || 'Failed to update approval', 'error');
     },
   });
 

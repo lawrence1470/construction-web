@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { Settings, LogOut, ChevronRight } from 'lucide-react';
-import { ChartBar, FolderSimple, FileMagnifyingGlass, GearSix, UsersThree, MapPin, X, type Icon } from '@phosphor-icons/react';
+import { ChartBar, FolderSimple, FileMagnifyingGlass, GearSix, UsersThree, MapPin, Gauge, SealCheck, X, SignOut, CaretRight, type Icon } from '@phosphor-icons/react';
 import { Drawer, Box, IconButton, Typography } from '@mui/material';
 import {
   DropdownMenu,
@@ -33,6 +32,8 @@ const iconMap: Record<string, Icon> = {
   GearSix,
   UsersThree,
   MapPin,
+  Gauge,
+  SealCheck,
 };
 
 interface MobileDrawerProps {
@@ -41,7 +42,7 @@ interface MobileDrawerProps {
 }
 
 const mobileProfileMenuItems = [
-  { icon: Settings, label: 'Account Settings' },
+  { icon: GearSix, label: 'Account Settings' },
 ];
 
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
@@ -233,7 +234,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                         py: 0.875,
                         borderRadius: '8px',
                         position: 'relative',
-                        transition: 'all 0.15s ease',
+                        transition: 'background-color 0.15s ease, color 0.15s ease',
                         bgcolor: isActive ? 'sidebar.activeItemBg' : 'transparent',
                         color: isActive ? 'text.primary' : 'text.secondary',
                         opacity: isDisabled ? 0.35 : 1,
@@ -281,7 +282,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                         {item.label}
                       </Typography>
 
-                      {badgeCount !== null && badgeCount > 0 && !isActive && (
+                      {badgeCount !== null && badgeCount > 0 && (
                         <Typography
                           sx={{
                             fontSize: '0.6875rem',
@@ -299,7 +300,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
                       {/* Subtle arrow for active item */}
                       {isActive && (
-                        <ChevronRight style={{ width: 13, height: 13, opacity: 0.4, flexShrink: 0 }} />
+                        <CaretRight size={13} style={{ opacity: 0.4, flexShrink: 0 }} />
                       )}
                     </Box>
                   );
@@ -312,7 +313,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                     <Link
                       key={item.id}
                       href={href}
-                      style={{ textDecoration: 'none', color: 'inherit' }}
+                      className="nav-focusable"
+                style={{ textDecoration: 'none', color: 'inherit' }}
                     >
                       {content}
                     </Link>
@@ -330,8 +332,6 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           <Box
             component="button"
             sx={{
-              borderTop: '1px solid',
-              borderColor: 'divider',
               display: 'flex',
               alignItems: 'center',
               gap: 1.25,
@@ -339,7 +339,10 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
               py: 1.5,
               width: '100%',
               bgcolor: 'transparent',
+              // border shorthand first — a later shorthand would reset borderTop
               border: 'none',
+              borderTop: '1px solid',
+              borderColor: 'divider',
               cursor: 'pointer',
               color: 'text.secondary',
               transition: 'background-color 0.15s ease',
@@ -387,7 +390,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           sideOffset={8}
           anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
           transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          style={{ width: 240, padding: 0, overflow: 'hidden', borderRadius: 12 }}
+          slotProps={{ paper: { sx: { width: 240, p: 0, overflow: 'hidden', borderRadius: '12px' } } }}
         >
           {/* Profile Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: '14px' }}>
@@ -483,7 +486,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
               '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
             }}
           >
-            <LogOut style={{ width: 14, height: 14, color: 'inherit' }} />
+            <SignOut size={14} color="currentColor" />
             <Typography sx={{ fontSize: '0.8125rem', fontWeight: 500, color: 'inherit' }}>
               Log out
             </Typography>

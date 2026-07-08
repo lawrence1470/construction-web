@@ -422,7 +422,7 @@ export function TaskDetailsPopover({
               overflow: 'hidden',
               border: '1px solid',
               borderColor: 'divider',
-              boxShadow: '0 24px 64px -12px rgba(0,0,0,0.12), 0 8px 20px -8px rgba(0,0,0,0.04)',
+              boxShadow: 'var(--shadow-modal)',
               maxHeight: '85vh',
               width: hasRightPanel ? POPOVER_EXPANDED_WIDTH : POPOVER_WIDTH,
               transition: isDragging ? 'none' : 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',

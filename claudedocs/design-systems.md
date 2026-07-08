@@ -202,6 +202,8 @@ Dark mode uses a three-tier elevation stack:
 | Main | `background.default` | `#0f1011` | Main content area |
 | Elevated | `background.paper` / `card.background` | `#191a1b` | Cards, dialogs, dropdowns |
 
+**Dark primary/secondary retune (2026-07):** dark `primary.main` is `#9BA1C6` (light periwinkle) with `contrastText #0f1011` — contained primary buttons in dark are light-fill/dark-text; never hardcode white on `primary.main`, always pair with `primary.contrastText`. Dark `secondary.main` is `#2b2c2d` (a visible step above paper `#191a1b`) for subtle selected/segmented states.
+
 This mirrors light mode where `background.paper` (`#FFFFFF`) sits above `background.default` (`#f7f8f8`), keeping the semantic hierarchy consistent across modes. When adding a new elevation level (e.g. a raised card over a card), either use `action.hover`/`action.selected` for subtle tint or introduce a new token — don't reuse `sidebar.background` for non-sidebar surfaces.
 
 ### Rule 10 — Available tokens
@@ -214,7 +216,7 @@ This mirrors light mode where `background.paper` (`#FFFFFF`) sits above `backgro
 - `sidebar.{background, border, indicator, activeBg, hoverBg, activeItemBg}`
 - `status.{active, inProgress, onHold, completed, archived, activeBg, activeText, inProgressBg, inProgressText}`
 - `docExplorer.{destructiveMain, destructiveDark, destructiveLight, linkedGreen, badgeBg, aiPurple}`
-- `timeline.{accent, accentSubtle}`, `grid.line`, `warm.{main, dark}`
+- `timeline.{accent, accentSubtle}`, `grid.line`, `warm.{main, dark, contrastText, subtle}` — `warm` is the app's **signature amber accent** (active nav indicator, progress fills, live/attention states; NOT button fills — contained amber + white text fails AA)
 - `action.{hover, selected, focus, disabled, disabledBackground}`
 
 **CSS variables (use in inline `style`, raw CSS, template-literal styles):**
@@ -222,6 +224,11 @@ This mirrors light mode where `background.paper` (`#FFFFFF`) sits above `backgro
 - `--text-primary`, `--text-secondary`, `--text-muted`
 - `--border-color`, `--border-light`, `--accent-primary`, `--accent-subtle`, `--accent-contrast`
 - `--sidebar-*`, `--status-*`, `--gantt-*`, `--timeline-*`, `--grid-line`, `--radius-*`, `--focus-ring`
+- `--accent-warm`, `--accent-warm-hover`, `--accent-warm-contrast`, `--accent-warm-subtle` — signature amber accent (has dark-mode overrides)
+- `--shadow-card`, `--shadow-card-hover` — card elevation scale (dark values are stronger since shadows barely read on near-black); pair with a `translateY(-1px)` hover lift gated behind `prefers-reduced-motion`
+- `--shadow-overlay` (menus/popovers) and `--shadow-modal` (dialogs) — floating-surface elevation, both with dark overrides. The theme applies them automatically via MuiMenu/MuiPopover/MuiDialog styleOverrides (plus 12px/16px paper radii and a 1px divider border on menus) — do not hardcode per-component overlay shadows or dialog radii.
+- `--status-green/--status-amber/--status-red/--status-blue` now have dark-mode 400-family overrides (`#4ade80/#fbbf24/#f87171/#60a5fa`) — safe to use as text/border colors in both modes.
+- `.stagger-in` utility class (globals.css) — direct children cascade in with capped nth-child delays; reduced-motion safe
 
 All of these flip when the user toggles dark mode. Do not hardcode a value when a token exists for it.
 

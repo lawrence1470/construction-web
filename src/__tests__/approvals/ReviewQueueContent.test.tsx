@@ -37,6 +37,10 @@ vi.mock("@/components/providers/OrgProvider", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useSnackbar", () => ({
+  useSnackbar: () => ({ showSnackbar: vi.fn() }),
+}));
+
 vi.mock("@/trpc/react", () => ({
   api: {
     approval: {

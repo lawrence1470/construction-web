@@ -220,7 +220,7 @@ function SignInForm() {
           flexDirection: 'column',
           position: 'relative',
           height: '100vh',
-          bgcolor: 'primary.main',
+          bgcolor: '#2B2D42' /* fixed brand navy — decorative panel, constant across modes */,
           borderRight: 1,
           borderColor: 'divider',
           p: 5,
@@ -357,7 +357,7 @@ function SignInForm() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
+                color: 'warm.contrastText',
               }}
             >
               <LogoIcon size={24} />
@@ -471,15 +471,15 @@ function SignInForm() {
                   loading={loading}
                   size="large"
                   endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    bgcolor: 'warm.main',
-                    color: 'white',
+                  sx={(theme) => ({
+                    bgcolor: theme.palette.mode === 'light' ? theme.palette.warm.dark : theme.palette.warm.main,
+                    color: theme.palette.warm.contrastText,
                     height: 48,
                     fontSize: '0.95rem',
                     '&:hover': {
-                      bgcolor: 'warm.dark',
+                      bgcolor: theme.palette.mode === 'light' ? '#92400e' : theme.palette.warm.dark,
                     },
-                  }}
+                  })}
                 >
                   Sign in
                 </Button>
@@ -509,15 +509,15 @@ function SignInForm() {
                   disabled={otp.length !== 6}
                   size="large"
                   endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    bgcolor: 'warm.main',
-                    color: 'white',
+                  sx={(theme) => ({
+                    bgcolor: theme.palette.mode === 'light' ? theme.palette.warm.dark : theme.palette.warm.main,
+                    color: theme.palette.warm.contrastText,
                     height: 48,
                     fontSize: '0.95rem',
                     '&:hover': {
-                      bgcolor: 'warm.dark',
+                      bgcolor: theme.palette.mode === 'light' ? '#92400e' : theme.palette.warm.dark,
                     },
-                  }}
+                  })}
                 >
                   {loading ? 'Verifying...' : 'Verify & sign in'}
                 </Button>

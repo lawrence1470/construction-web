@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { ChartBar, FolderSimple, FileMagnifyingGlass, GearSix, UsersThree, SealCheck, MapPin, CaretRight, CaretLineLeft, Sun, Moon, type Icon } from '@phosphor-icons/react';
+import { ChartBar, FolderSimple, FileMagnifyingGlass, GearSix, UsersThree, SealCheck, MapPin, Gauge, CaretLineLeft, Sun, Moon, type Icon } from '@phosphor-icons/react';
 import { Box, Typography, Tooltip } from '@mui/material';
 import { projectNavItems, orgNavItems, getProjectNavHref, getOrgNavHref, SIDEBAR_SECTIONS, type NavItem, type NavSectionDef } from './navItems';
 import OrgSwitcher from './OrgSwitcher';
@@ -26,6 +26,7 @@ const iconMap: Record<string, Icon> = {
   GearSix,
   UsersThree,
   MapPin,
+  Gauge,
 };
 
 interface SidebarProps {
@@ -133,7 +134,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   py: 0.875,
                   borderRadius: '8px',
                   position: 'relative',
-                  transition: 'all 150ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: 'background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1)',
                   bgcolor: isActive ? 'sidebar.activeItemBg' : 'transparent',
                   color: isActive ? 'text.primary' : 'text.secondary',
                   opacity: isDisabled ? 0.35 : 1,
@@ -145,12 +146,6 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   '&:hover': isDisabled ? {} : {
                     bgcolor: isActive ? 'sidebar.activeItemBg' : 'sidebar.hoverBg',
                     color: 'text.primary',
-                    boxShadow: (theme) =>
-                      !isActive
-                        ? theme.palette.mode === 'dark'
-                          ? 'inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.2)'
-                          : '0 2px 4px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.08)'
-                        : 'none',
                     '& .nav-icon': !isActive ? { transform: 'scale(1.08)' } : {},
                   },
                 }}
@@ -207,7 +202,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   </Typography>
                 )}
 
-                {!collapsed && badgeCount !== null && badgeCount > 0 && !isActive && (
+                {!collapsed && badgeCount !== null && badgeCount > 0 && (
                   <Typography
                     key={badgePulseKey}
                     sx={{
@@ -235,46 +230,37 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   </Typography>
                 )}
 
-                {/* Subtle arrow for active item */}
-                {isActive && !collapsed && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      flexShrink: 0,
-                      opacity: 0.4,
-                      animation: 'chevronSlideIn 180ms ease-out',
-                      '@keyframes chevronSlideIn': {
-                        '0%': { opacity: 0, transform: 'translateX(-4px)' },
-                        '100%': { opacity: 0.4, transform: 'translateX(0)' },
-                      },
-                      '@media (prefers-reduced-motion: reduce)': {
-                        animation: 'none',
-                      },
-                    }}
-                  >
-                    <CaretRight size={13} />
-                  </Box>
-                )}
               </Box>
             );
 
+            const disabledHint = isOrgScope
+              ? 'Select an organization first'
+              : 'Select a project first';
+
             const wrappedContent = collapsed ? (
-              <Tooltip title={item.label} placement="right" key={item.id}>
+              <Tooltip
+                title={isDisabled ? `${item.label} — ${disabledHint.toLowerCase()}` : item.label}
+                placement="right"
+                key={item.id}
+              >
                 {isDisabled ? (
                   <Box>{content}</Box>
                 ) : (
-                  <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <Link href={href} className="nav-focusable"
+                style={{ textDecoration: 'none', color: 'inherit' }}>
                     {content}
                   </Link>
                 )}
               </Tooltip>
             ) : isDisabled ? (
-              <Box key={item.id}>{content}</Box>
+              <Tooltip title={disabledHint} placement="right" key={item.id}>
+                <Box>{content}</Box>
+              </Tooltip>
             ) : (
               <Link
                 key={item.id}
                 href={href}
+                className="nav-focusable"
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 {content}
@@ -456,9 +442,9 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}>
                 {isDark ? (
-                  <Sun size={15} weight="bold" />
+                  <Sun size={17} weight="regular" />
                 ) : (
-                  <Moon size={15} weight="bold" />
+                  <Moon size={17} weight="regular" />
                 )}
               </Box>
               {!collapsed && (

@@ -241,7 +241,7 @@ export default function SignUpPage() {
           flexDirection: 'column',
           position: 'relative',
           height: '100vh',
-          bgcolor: 'primary.main',
+          bgcolor: '#2B2D42' /* fixed brand navy — decorative panel, constant across modes */,
           borderRight: 1,
           borderColor: 'divider',
           p: 5,
@@ -378,7 +378,7 @@ export default function SignUpPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
+                color: 'warm.contrastText',
               }}
             >
               <LogoIcon size={24} />
@@ -535,15 +535,15 @@ export default function SignUpPage() {
                   size="large"
                   fullWidth
                   endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    bgcolor: 'warm.main',
-                    color: 'white',
+                  sx={(theme) => ({
+                    bgcolor: theme.palette.mode === 'light' ? theme.palette.warm.dark : theme.palette.warm.main,
+                    color: theme.palette.warm.contrastText,
                     height: 48,
                     fontSize: '0.95rem',
                     '&:hover': {
-                      bgcolor: 'warm.dark',
+                      bgcolor: theme.palette.mode === 'light' ? '#92400e' : theme.palette.warm.dark,
                     },
-                  }}
+                  })}
                 >
                   {loading ? 'Creating account...' : 'Create account'}
                 </Button>
@@ -573,15 +573,15 @@ export default function SignUpPage() {
                   size="large"
                   fullWidth
                   endIcon={<ArrowRight size={18} />}
-                  sx={{
-                    bgcolor: 'warm.main',
-                    color: 'white',
+                  sx={(theme) => ({
+                    bgcolor: theme.palette.mode === 'light' ? theme.palette.warm.dark : theme.palette.warm.main,
+                    color: theme.palette.warm.contrastText,
                     height: 48,
                     fontSize: '0.95rem',
                     '&:hover': {
-                      bgcolor: 'warm.dark',
+                      bgcolor: theme.palette.mode === 'light' ? '#92400e' : theme.palette.warm.dark,
                     },
-                  }}
+                  })}
                 >
                   {loading ? 'Verifying...' : 'Verify email'}
                 </Button>

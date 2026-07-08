@@ -188,7 +188,9 @@ export default function DocumentFilterTabs({
               px: '5px',
               borderRadius: '999px',
               bgcolor: isUnassignedActive ? theme.palette.warning.main : alpha(theme.palette.warning.main, 0.18),
-              color: isUnassignedActive ? '#fff' : theme.palette.warning.dark,
+              color: isUnassignedActive
+                ? theme.palette.getContrastText(theme.palette.warning.main)
+                : theme.palette.warning.dark,
             }}
           >
             <Typography sx={{ fontSize: 10, fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>

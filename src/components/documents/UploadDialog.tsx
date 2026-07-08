@@ -196,9 +196,8 @@ export default function UploadDialog({
       PaperProps={{
         sx: {
           width: 460,
-          borderRadius: '16px',
           overflow: 'hidden',
-          boxShadow: `0 24px 64px -16px ${alpha('#000', 0.2)}, 0 8px 20px -8px ${alpha('#000', 0.08)}`,
+          boxShadow: 'var(--shadow-modal)',
         },
       }}
     >

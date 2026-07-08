@@ -64,7 +64,7 @@ export default async function OrgHomePage({
   }
 
   if (project) {
-    redirect(`/${orgSlug}/projects/${project.slug}/gantt`);
+    redirect(`/${orgSlug}/projects/${project.slug}/overview`);
   }
 
   const { welcome } = await searchParams;

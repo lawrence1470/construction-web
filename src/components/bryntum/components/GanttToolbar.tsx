@@ -44,7 +44,7 @@ const cardContainerSx = {
   bgcolor: 'var(--bg-card)',
   borderRadius: '10px',
   border: '1px solid var(--border-color)',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+  boxShadow: 'var(--shadow-card)',
   overflow: 'hidden',
   flexShrink: 0,
 } as const;
@@ -379,7 +379,7 @@ export default function GanttToolbar({
               position: 'absolute',
               inset: 0,
               borderRadius: 'inherit',
-              border: '1.5px solid rgba(43, 45, 66, 0.45)',
+              border: '1.5px solid var(--focus-ring)',
               pointerEvents: 'none',
               willChange: 'transform, opacity',
               animation: 'gantt-segment-pulse 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -657,7 +657,7 @@ export default function GanttToolbar({
                     bgcolor: 'var(--bg-card)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--border-color)',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+                    boxShadow: 'var(--shadow-card)',
                     '&:hover': { bgcolor: 'action.hover' },
                   }),
             }}

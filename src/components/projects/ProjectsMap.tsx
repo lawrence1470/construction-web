@@ -228,7 +228,7 @@ function PinCircle({
         bgcolor: statusColor,
         border: '2px solid #fff',
         boxShadow: isActive
-          ? `0 0 0 3px #f59e0b, 0 2px 6px ${alpha('#000', 0.3)}`
+          ? `0 0 0 3px var(--accent-warm), 0 2px 6px ${alpha('#000', 0.3)}`
           : `0 2px 4px ${alpha('#000', 0.25)}`,
         cursor: 'pointer',
         transition: 'width 0.15s, height 0.15s',

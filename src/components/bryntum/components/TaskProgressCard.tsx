@@ -30,7 +30,7 @@ export default function TaskProgressCard({ uploaded, required }: TaskProgressCar
           borderRadius: '10px',
           bgcolor: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+          boxShadow: 'var(--shadow-card)',
           flexShrink: 0,
         }}
       >
@@ -53,7 +53,7 @@ export default function TaskProgressCard({ uploaded, required }: TaskProgressCar
         borderRadius: '10px',
         bgcolor: 'var(--bg-card)',
         border: '1px solid var(--border-color)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+        boxShadow: 'var(--shadow-card)',
         flexShrink: 0,
       }}
     >

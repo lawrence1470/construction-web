@@ -836,7 +836,7 @@ export default function ProjectsTree({ selectedNodeId, onSelect, projectId, orga
             mb: 2,
           }}
         >
-          <CalendarBlank size={32} color="var(--text-disabled)" />
+          <CalendarBlank size={32} color="var(--text-muted)" />
         </Box>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: 'text.primary' }}>
           No Tasks Yet
