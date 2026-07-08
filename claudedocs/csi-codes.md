@@ -6,9 +6,9 @@ The Gantt chart task popover includes a CSI (Construction Specifications Institu
 
 ## Data Source
 
-The CSI code list is stored as a static JSON file at `src/lib/constants/csiCodes.json` as a **flat** list (`[{ code, name, subdivisions: [{ code, name }] }]`). The flat list is the source of truth; the three-tier hierarchy shown in the picker is **derived in code** at module init (see "Three-tier hierarchy" below).
+The CSI code list is stored as a static JSON file at `src/lib/constants/csiCodes.json` as a **flat** list (`[{ code, name, subdivisions: [{ code, name }] }]`). The flat list is the source of truth; the three-tier hierarchy shown in the picker is **derived in code** (lazily, on first use — see "Three-tier hierarchy" below).
 
-**Statistics**: 35 active divisions, 1,482 section codes (all `XX XX 00` format). Those 1,482 codes split into two outline tiers: **373 Level-2 broad headings** (e.g. `03 30 00 Cast-in-Place Concrete`) and **1,074 Level-3 details** (e.g. `03 31 00 Structural Concrete`), plus the 35 `XX 00 00` division-title rows.
+**Statistics**: 35 active divisions, **6,472 section codes** spanning all four MasterFormat outline tiers — division titles (`XX 00 00`), Level-2 broad headings (`03 30 00`), Level-3 details (`03 31 00`), and **Level-4 detail codes** (`XX XX YY` where the last pair ≠ `00`, e.g. `31 23 19 Dewatering`, `03 31 13 Heavyweight Structural Concrete`). **4,987 of the codes are Level-4**, added from the MasterFormat 2018 master list; the original ~1,482 Level-1–3 codes are preserved verbatim (titles unchanged). Level-5 codes (`XX XX YY.ZZ`, e.g. `31 09 13.13`) remain out of scope.
 
 ### Three-tier hierarchy (derived)
 
@@ -18,9 +18,11 @@ MasterFormat is an outline: Division → Level-2 broad heading → Level-3 detai
 |---|---|---|
 | `00` (`03 00 00`) | Division title | selectable Level-2 leaf under its division |
 | `01`–`09` or ends in `0` (`03 30 00`) | Level-2 broad heading | directly under the division |
-| anything else (`03 31 00`) | Level-3 detail | nests under heading `XX <Y>0 00` |
+| anything else (`03 31 00`, `31 23 19`) | Level-3/Level-4 detail | nests under heading `XX <Y>0 00` |
 
-Codes are sorted before grouping, so a heading always precedes its children. A Level-3 code whose computed parent heading is absent (9 such codes — 8 in Division 00, 1 in Division 33, e.g. `00 31 00`, `33 92 00`) is **promoted to a Level-2 leaf under its division** so nothing is dropped. The invariant "the tree contains exactly the flat code set, none lost or invented" is locked by `src/__tests__/constants/csiCodes.test.ts`.
+`buildTree()` keys only on the **second** digit-pair `YY`, so Level-4 codes (`XX XX YY`, last pair ≠ `00`) are grouped by their `YY` alongside the Level-3 detail that shares it — e.g. `31 23 19 Dewatering` and `03 31 13 Heavyweight Structural Concrete` sit as selectable sections under headings `31 20 00` / `03 30 00`, next to their Level-3 sibling `31 23 00` / `03 31 00`. They are flat under the group rather than nested a fourth level deep; every code is still present and selectable.
+
+Codes are sorted before grouping, so a heading always precedes its children. A detail code whose computed parent heading is absent (now **1 code — `33 92 00`** in Division 33; the Division-00 orphans gained parent headings when the Level-4 set was merged in) is **promoted to a Level-2 leaf under its division** so nothing is dropped. The invariant "the tree contains exactly the flat code set, none lost or invented" is locked by `src/__tests__/constants/csiCodes.test.ts`.
 
 ### Where the data came from
 
@@ -28,24 +30,26 @@ The code list was compiled from multiple authoritative sources and cross-validat
 
 | Source | What it provided | URL |
 |--------|-----------------|-----|
-| AGC Austin MasterFormat 2018 PDF | Primary source: 1,433 Level 3 codes with titles. Used for final validation — our JSON is a superset of this document with zero gaps. | `agcaustin.org/uploads/.../masterformat_2018_web.pdf` |
+| CSI MasterFormat 2018 master list (numbers & titles) PDF | **Primary Level-4 source.** ~6,666 `XX XX XX` codes including the full Level-4 tier, parsed from the single-column "Master List of Numbers, Titles, and Explanations" section. Titles cross-validated against the existing vetted list (1,442 common codes matched; the ~4,990 new codes are Level-4). | `cscheduling.b-cdn.net/free downloads/CSI Master Format DIVISIONS & TITLES - 2018 EDITION.pdf` |
+| AGC Austin MasterFormat 2018 PDF | Earlier source for the original 1,482 Level-1–3 codes. | `agcaustin.org/uploads/.../masterformat_2018_web.pdf` |
 | pdfcoffee.com CSI 2018 Edition | Detailed Level 3 codes for Divisions 00-14 with full subdivision breakdowns | `pdfcoffee.com/csi-master-format-divisions-amp-titles-2018-edition-pdf-free.html` |
 | DesignGuide CSI MasterFormat Index | Level 2 codes for all 35 divisions | `designguide.com/csi-masterformat-index` |
 | Original project data | 799 codes from initial implementation, preserved as baseline | Internal |
 
 ### Validation
 
-The final JSON was validated against the AGC Austin PDF (official MasterFormat 2018):
-- **0 codes missing** from the official PDF source
-- **49 extra codes** in our file that the PDF didn't include (valid codes from other MasterFormat references, e.g., `02 85 00 Mold Remediation`, `33 20 00 Wells`)
-- All codes match `XX XX 00` format
+The merged JSON was validated programmatically after the Level-4 master-list merge:
+- All codes match `XX XX XX` format (Level-1–4; no Level-5 decimals)
 - All subdivision codes fall within their parent division
 - No duplicate codes
+- Every original Level-1–3 title preserved unchanged (0 existing titles modified)
+- The 39 codes our list has that the master-list PDF omits (e.g. `02 85 00`, `33 13 00`, several `44 xx`/`46 xx` process-equipment codes) were kept — the merge is additive, never a replacement
+- Tree-integrity invariant enforced by `src/__tests__/constants/csiCodes.test.ts` (flat set == tree leaves)
 
 ### What's NOT included
 
 - **Reserved divisions**: 15-20, 24, 29-30, 36-39, 47, 49 (unassigned in MasterFormat 2018)
-- **Level-4 detail codes**: the deeper tier below Level-3 (`XX XX XX` where the **last** pair != 00, e.g. `03 31 13 Heavyweight Structural Concrete`) is not included. These are rarely used in construction PM tools and would add ~10,000+ entries. The three tiers we render (Division → Level-2 → Level-3) all live in the `XX XX 00` codes already present.
+- **Level-5 codes**: the deepest tier (`XX XX YY.ZZ`, e.g. `31 09 13.13 Groundwater Monitoring During Construction`) is not included. These are rarely used in construction PM tools, would add several thousand more entries, and use a decimal format the `XX XX XX` schema and `formatCsiCodeWith()` don't parse. (Level-4 codes like `31 23 19` **are** included as of the master-list merge.)
 
 ## Architecture
 
@@ -53,20 +57,22 @@ The final JSON was validated against the AGC Austin PDF (official MasterFormat 2
 
 | File | Purpose |
 |------|---------|
-| `src/lib/constants/csiCodes.json` | Raw **flat** data: `[{ code, name, subdivisions: [{ code, name }] }]` |
-| `src/lib/constants/csiCodes.ts` | TypeScript layer: exports `CSI_TREE` (derived 3-tier hierarchy, types `CsiDivisionTree`/`CsiGroup`/`CsiSection`), `CSI_DIVISIONS`, `CSI_DIVISION_MAP`, `CSI_SUBDIVISION_MAP`, `formatCsiCode()`. Lookup maps are built straight from the flat JSON so validation/display never depend on the grouping logic. |
+| `src/lib/constants/csiCodes.json` | Raw **flat** data (~606KB): `[{ code, name, subdivisions: [{ code, name }] }]`. **Only ever dynamically imported** (see lazy loading below), so it lands in its own async chunk (~68KB gzip) instead of any initial bundle. |
+| `src/lib/constants/csiCodes.ts` | Lazy data layer: `loadCsiData()` dynamically imports the JSON once and memoizes the O(1) lookup maps + the `CSI_TREE` hierarchy (via `buildTree()`) into a `CsiData` object. Nothing runs at module init. Also exports `getLoadedCsiData()`, `formatCsiCodeWith(data, code)`, and the `CsiDivisionTree`/`CsiGroup`/`CsiSection` types. |
+| `src/lib/constants/csiCodeSet.json` + `csiCodeSet.ts` | **Codes-only** membership data (~70KB / 14KB gzip): a flat `string[]` of every valid code and `CSI_CODE_SET` / `isValidCsiCode()`. This is all server-side validation needs, so it keeps the 606KB names+tree payload and `buildTree()` cost out of the server bundle. Generated from `csiCodes.json`; kept in sync by the test. |
+| `src/lib/constants/useCsiData.ts` | Client hooks `useCsiData()` (loads the dataset on mount, returns `null` until ready) and `useCsiName(code)` (formats one code, showing the raw code until names load). Used by display consumers (`TaskHeader`, document filters). |
 | `src/components/bryntum/components/task-popover/TaskHeader.tsx` | Inline CSI chip in the popover meta row (code + truncated name when set, dashed "+ CSI code" when empty); calls `onOpenCsiPanel` to open the panel |
 | `src/components/bryntum/components/task-popover/CsiCodePanel.tsx` | Slide-in panel: 3-tier accordion (Division → Level-2 heading → Level-3 detail) with search, optimistic updates, code selection. Level-2 headings are both selectable and expandable; Level-3 details are selectable leaves. The current-selection **banner** also hosts the per-(project, code) spec document (upload/open/remove). |
-| `src/lib/validations/gantt.ts` | Zod `.refine()` validation for `csiCode` on the shared `gantt.sync` task schema |
+| `src/lib/validations/gantt.ts` | Zod `.refine()` validation for `csiCode` on the shared `gantt.sync` task schema — uses `isValidCsiCode()` from `csiCodeSet.ts` (codes-only, no names/tree) |
 | `src/server/api/routers/csiSpec.ts` + `src/lib/validations/csiSpec.ts` | tRPC router (`getForCode` / `attach` / `detach`) and Zod schemas for the per-(project, code) spec document. See "Spec document attachment" below. |
 
 ### Data flow
 
-1. **Static JSON** loaded at module init; TypeScript builds the O(1) lookup Maps (from the flat list) and the `CSI_TREE` 3-tier hierarchy (via `buildTree()`), all once at module load
+1. **Lazy load**: the first consumer to mount (`TaskHeader`, a document filter, or the picker) calls `useCsiData()` → `loadCsiData()`, which dynamically imports the JSON once and memoizes the maps + `CSI_TREE`. Nothing is built at module init; the dataset is shared module-wide after the first load.
 2. **Trigger**: `TaskHeader` renders an inline CSI chip; clicking it calls `onOpenCsiPanel` to open the `CsiCodePanel` slide-in panel
-3. **Selection**: `CsiCodePanel` reads from `CSI_TREE`, filters client-side across all three tiers, and shows a 3-tier accordion (division → Level-2 heading → Level-3 detail). Selecting either a heading or a detail saves; the division/group containing the current code auto-expands on open
-4. **Save**: User selects code -> optimistic update -> panel writes `record.csiCode = next` on the Bryntum task record -> Bryntum's `autoSync` flushes the change to `gantt.sync`, where the shared task Zod schema validates the code against `CSI_SUBDIVISION_MAP` / `CSI_DIVISION_MAP` and persists to `GanttTask.csiCode` (last-write-wins)
-5. **Display**: `formatCsiCode(code)` resolves `"03 30 00"` -> `"03 30 00 - Cast-in-Place Concrete"`
+3. **Selection**: `CsiCodePanel` reads `csiData.tree`, filters client-side across all tiers (the query runs through `useDeferredValue` so typing stays responsive), and shows a 3-tier accordion. Until `useCsiData()` resolves the panel shows a spinner; the spec-document banner still renders immediately (only the code's name lazy-fills). Selecting a heading or detail saves; the division/group containing the current code auto-expands on open.
+4. **Save**: User selects code -> optimistic update -> panel writes `record.csiCode = next` on the Bryntum task record -> Bryntum's `autoSync` flushes the change to `gantt.sync`, where the shared task Zod schema validates the code with `isValidCsiCode()` (codes-only set) and persists to `GanttTask.csiCode` (last-write-wins)
+5. **Display**: `formatCsiCodeWith(csiData, code)` / `useCsiName(code)` resolve `"03 30 00"` -> `"03 30 00 - Cast-in-Place Concrete"` (raw code until the dataset loads)
 
 ### Spec document attachment (per project + CSI code)
 
@@ -114,8 +120,8 @@ attached document opens it in the popover's in-app `DocumentPreviewDialog`.
 
 - MasterFormat updates every ~6 years (last: 2018). Near-zero change frequency.
 - All tenants use the same standard codes. No per-org customization needed.
-- Client-side search on ~1,500 items is sub-millisecond. No server query needed.
-- Bundle impact: ~134KB raw, ~16KB gzipped, only loaded on Gantt page.
+- Client-side search on ~6,500 items is still sub-millisecond. No server query needed.
+- Bundle impact: the ~606KB/~68KB-gzip names+tree JSON is **code-split into its own async chunk** (only ever dynamically imported), so it is not in any initial route bundle — it loads when the CSI picker / display hooks first mount. Server-side validation carries only the ~14KB-gzip codes-only set.
 - Zero infrastructure: no table, no seeding, no caching layer, no admin UI.
 
 Move to a database table only if: tenants need custom code lists, you need usage analytics, or the list changes frequently.
@@ -124,25 +130,29 @@ Move to a database table only if: tenants need custom code lists, you need usage
 
 | Optimization | Where | What it prevents |
 |------|-------|-----------------|
-| **Tree built once** | `csiCodes.ts` — `CSI_TREE` via `buildTree()` at module init | Re-deriving the 3-tier hierarchy on every render/keystroke |
-| **Pre-lowercased names** | `csiCodes.ts` — `nameLower` on divisions, Level-2 groups, and Level-3 sections | 1,482 `.toLowerCase()` string allocations per keystroke during search |
-| **`useMemo` filtering** | `CsiCodePanel.tsx` — `displayDivisions` keyed on `query` | Full tree walk + filter recomputation on unrelated state changes (expand toggle, optimistic code) |
+| **Lazy dynamic import** | `csiCodes.ts` — `loadCsiData()` `import("./csiCodes.json")`; `useCsiData()` hook | Shipping the 606KB names+tree JSON in initial route bundles / the server validation bundle |
+| **Validation split** | `csiCodeSet.ts` — codes-only `Set` + `isValidCsiCode()` | `gantt.sync` / `csiSpec` validation pulling names + running `buildTree()` server-side (uses the 14KB set instead) |
+| **Tree + maps built once (lazily)** | `csiCodes.ts` — memoized inside `loadCsiData()` | Re-deriving the hierarchy / lookup maps on every load; and building them at all for validation-only importers |
+| **Deferred search query** | `CsiCodePanel.tsx` — `useDeferredValue(search)` | The ~6,500-item filter blocking keystroke paints |
+| **Pre-lowercased names** | `csiCodes.ts` — `nameLower` on divisions, Level-2 groups, and sections | 6,472 `.toLowerCase()` string allocations per keystroke during search |
+| **`useMemo` filtering** | `CsiCodePanel.tsx` — `displayDivisions` keyed on the deferred `query` + `tree` | Full tree walk + filter recomputation on unrelated state changes (expand toggle, optimistic code) |
 | **`React.memo` SectionItem** | `CsiCodePanel.tsx` — extracted memoized Level-3 row | Re-rendering every visible row when only one item's `isSelected` changes |
 | **Stable `useCallback`** | `CsiCodePanel.tsx` — `handleSelect`, `toggleGroup` | New closure per row per render (breaks `React.memo`) |
-| **Collapsed-by-default accordion** | `CsiCodePanel.tsx` — only the expanded division's groups and expanded groups' sections render | Mounting all 1,482 rows at once when not searching |
+| **Collapsed-by-default accordion** | `CsiCodePanel.tsx` — only the expanded division's groups and expanded groups' sections render | Mounting all 6,472 rows at once when not searching |
 | **Search result caps** | `CsiCodePanel.tsx` — `MAX_GROUPS_PER_DIV` (25), `MAX_SECTIONS_PER_GROUP` (12) | Rendering hundreds of rows during broad searches (search force-expands the tree) |
-| **O(1) lookup Maps** | `csiCodes.ts` — `CSI_DIVISION_MAP`, `CSI_SUBDIVISION_MAP` | Linear scans for code display and validation |
+| **O(1) lookup Maps** | `csiCodes.ts` — `divisionMap`, `subdivisionMap` on `CsiData` | Linear scans for code display |
 
-**Not needed at this scale** (1,482 items): debouncing (filtering is sub-ms), virtualization (accordion caps visible items), Web Workers (serialization overhead exceeds compute), dynamic imports (15KB gzipped is noise).
+**Still adequate at this scale** (6,472 items): the collapsed-by-default accordion + per-group/per-division search caps keep the number of *mounted* rows small regardless of total code count, so virtualization remains unnecessary. The names+tree payload is code-split and lazy-loaded (~68KB gzip async chunk), and validation runs off a codes-only set. If code count grows much further (Level-5) or the accordion is ever made to render all rows at once, revisit virtualization.
 
 ## Updating the code list
 
 If MasterFormat releases a new edition:
 
-1. Source the new Level 3 list from CSI official sources or ARCAT
+1. Source the new list from CSI official sources or ARCAT
 2. Replace `src/lib/constants/csiCodes.json` (same schema)
-3. Validate: all existing stored codes should still be present (superset guarantee)
-4. Run `npx tsc --noEmit` and `npx vitest run src/__tests__/constants/csiCodes.test.ts` to verify — no code changes needed. The test asserts the derived `CSI_TREE` still contains exactly the flat code set (no codes lost or invented) and that nesting/orphan handling hold.
-5. The Zod `.refine()` validation in `src/lib/validations/gantt.ts` and the `CSI_TREE` hierarchy both auto-update since they derive from the same JSON
+3. **Regenerate the codes-only validation file** `src/lib/constants/csiCodeSet.json` from the new data (flat sorted `string[]` of every division + subdivision code). The sync test fails if you forget.
+4. Validate: all existing stored codes should still be present (superset guarantee)
+5. Run `npx tsc --noEmit` and `npx vitest run src/__tests__/constants/csiCodes.test.ts` to verify — no code changes needed. The test asserts the derived tree still contains exactly the flat code set (no codes lost or invented), nesting/orphan handling hold, and `csiCodeSet.json` matches `csiCodes.json`.
+6. The Zod `.refine()` validation (via `csiCodeSet.ts`) and the derived tree both auto-update since they derive from the same source JSON.
 
-If existing codes are removed in the new edition, `formatCsiCode()` gracefully falls back to returning the raw code string (no crash).
+If existing codes are removed in the new edition, `formatCsiCodeWith()` / `useCsiName()` gracefully fall back to returning the raw code string (no crash).

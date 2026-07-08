@@ -6,7 +6,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns';
 import { X, SlidersHorizontal, Check } from 'lucide-react';
 import { api } from '@/trpc/react';
-import { formatCsiCode } from '@/lib/constants/csiCodes';
+import { formatCsiCodeWith } from '@/lib/constants/csiCodes';
+import { useCsiData } from '@/lib/constants/useCsiData';
 import { parseLocalDate } from '@/lib/utils/date';
 
 const FOLDER_FILTERS = [
@@ -72,6 +73,7 @@ export default function DocumentFilterPopup({
   );
   const taskOptions = filterOptions?.tasks ?? [];
   const csiOptions = filterOptions?.csiCodes ?? [];
+  const csiData = useCsiData();
 
   // Sync pending state when popup opens
   useEffect(() => {
@@ -367,7 +369,7 @@ export default function DocumentFilterPopup({
           </MenuItem>
           {csiOptions.map((code) => (
             <MenuItem key={code} value={code} sx={{ fontSize: 13 }}>
-              {formatCsiCode(code)}
+              {formatCsiCodeWith(csiData, code)}
             </MenuItem>
           ))}
         </TextField>

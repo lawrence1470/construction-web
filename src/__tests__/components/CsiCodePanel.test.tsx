@@ -110,20 +110,25 @@ describe("CsiCodePanel — spec document banner", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a roll-up indicator on a collapsed division that contains a document", () => {
+  it("shows a roll-up indicator on a collapsed division that contains a document", async () => {
     // Selected code is in division 03 (auto-expanded); the doc lives in the
     // collapsed division 00, so its header shows the roll-up indicator.
+    // The tree lazy-loads, so await its appearance.
     mocks.listForProjectData = ["00 21 00"];
     renderPanel({ csiCode: "03 30 00" });
-    expect(screen.getByLabelText("Contains attached documents")).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText("Contains attached documents"),
+    ).toBeInTheDocument();
   });
 
-  it("does not flag prefix-sharing sibling codes that have no document", () => {
+  it("does not flag prefix-sharing sibling codes that have no document", async () => {
     // Regression: 00 51/52/54/55 00 are orphan Level-2 leaves sharing the "00 5"
     // prefix. Only 00 52 00 has a doc, so only it should show the indicator.
     mocks.listForProjectData = ["00 52 00"];
     renderPanel({ csiCode: "00 52 00" }); // selecting it expands division 00
-    expect(screen.getAllByLabelText("Has attached document")).toHaveLength(1);
+    expect(
+      await screen.findAllByLabelText("Has attached document"),
+    ).toHaveLength(1);
   });
 
   it("shows a loading spinner while removing the document", async () => {

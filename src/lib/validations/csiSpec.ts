@@ -1,12 +1,10 @@
 import { z } from "zod";
-import { CSI_SUBDIVISION_MAP, CSI_DIVISION_MAP } from "@/lib/constants/csiCodes";
+import { isValidCsiCode } from "@/lib/constants/csiCodeSet";
 
 // A CSI code that exists in our MasterFormat data (same check as gantt.ts).
-const csiCodeSchema = z
-  .string()
-  .refine((val) => CSI_SUBDIVISION_MAP.has(val) || CSI_DIVISION_MAP.has(val), {
-    message: "Invalid CSI code",
-  });
+const csiCodeSchema = z.string().refine((val) => isValidCsiCode(val), {
+  message: "Invalid CSI code",
+});
 
 // NOTE: these are used with `projectProcedure`, which injects `{ projectId }`.
 // Do not add `projectId` here and do not `.strict()` (tRPC parses the full raw

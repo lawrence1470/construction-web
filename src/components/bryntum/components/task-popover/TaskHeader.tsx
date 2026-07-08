@@ -4,7 +4,7 @@ import { Box, CircularProgress, Skeleton, Typography } from '@mui/material';
 import { X, CalendarBlank, Timer, Tag, CaretRight, Plus, Check } from '@phosphor-icons/react';
 import type { Theme } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
-import { CSI_SUBDIVISION_MAP } from '@/lib/constants/csiCodes';
+import { useCsiData } from '@/lib/constants/useCsiData';
 
 type Status = 'not-started' | 'in-progress' | 'complete';
 
@@ -179,7 +179,10 @@ export default function TaskHeader({
 
   // CSI lookup — uses the effective (optimistic) code so the chip reflects the
   // just-picked value before the server round-trip lands.
-  const csiEntry = effectiveCsiCode ? CSI_SUBDIVISION_MAP.get(effectiveCsiCode) : null;
+  const csiData = useCsiData();
+  const csiEntry = effectiveCsiCode
+    ? csiData?.subdivisionMap.get(effectiveCsiCode)
+    : null;
   const csiName = csiEntry?.subdivision.name ?? null;
 
   const metaDateRange = [

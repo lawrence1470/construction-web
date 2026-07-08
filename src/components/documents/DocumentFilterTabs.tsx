@@ -5,7 +5,7 @@ import { SlidersHorizontal, X, SquareCheck, CircleDashed, CheckSquare, Hash, Cal
 import { format } from 'date-fns';
 import { api } from '@/trpc/react';
 import { useProjectContext } from '@/components/providers/ProjectProvider';
-import { formatCsiCode } from '@/lib/constants/csiCodes';
+import { useCsiName } from '@/lib/constants/useCsiData';
 import { parseLocalDate } from '@/lib/utils/date';
 import type { LinkFilter, AdvancedFilters } from '@/components/documents/DocumentFilterPopup';
 
@@ -57,6 +57,7 @@ export default function DocumentFilterTabs({
   const theme = useTheme();
   const { organizationId, projectId } = useProjectContext();
 
+  const csiChipLabel = useCsiName(advanced.csiCode);
   const hasDate = !!(advanced.dateFrom || advanced.dateTo);
   const activeCount =
     selectedTypes.length +
@@ -293,7 +294,7 @@ export default function DocumentFilterTabs({
               whiteSpace: 'nowrap',
             }}
           >
-            {formatCsiCode(advanced.csiCode)}
+            {csiChipLabel}
           </Typography>
           <Box component="button" onClick={onRemoveCsi} sx={removeBtnSx}>
             <X style={{ width: 12, height: 12 }} />
