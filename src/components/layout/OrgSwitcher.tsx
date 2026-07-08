@@ -165,6 +165,11 @@ export default function OrgSwitcher({ collapsed = false }: { collapsed?: boolean
               cursor: 'not-allowed',
               opacity: 0.5,
             },
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
           }}
         >
           {triggerContent}

@@ -109,7 +109,7 @@ export function FileDropzone({
       {isLoading ? (
         <CircularProgress size={32} sx={{ color: 'text.secondary' }} />
       ) : (
-        <FileUp size={32} style={{ color: 'var(--text-disabled)' }} />
+        <FileUp size={32} style={{ color: 'var(--text-muted)' }} />
       )}
       <Box sx={{ textAlign: 'center' }}>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>

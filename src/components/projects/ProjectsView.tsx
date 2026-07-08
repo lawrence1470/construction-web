@@ -123,8 +123,8 @@ export default function ProjectsView({ orgSlug }: { orgSlug: string }) {
       ) : projects.length === 0 ? (
         <EmptyState onAddProject={() => setAddProjectOpen(true)} />
       ) : (
-        <Box sx={{ flex: 1, display: 'flex', minHeight: 0, gap: 2 }}>
-          <Box sx={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: 0, gap: 2 }}>
+          <Box sx={{ width: { xs: '100%', md: 320 }, maxHeight: { xs: 240, md: 'none' }, flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <ProjectsListPane
               orgSlug={orgSlug}
               mapped={mapped}
@@ -142,6 +142,7 @@ export default function ProjectsView({ orgSlug }: { orgSlug: string }) {
               overflow: 'hidden',
               border: '1px solid',
               borderColor: 'divider',
+              boxShadow: 'var(--shadow-card)',
               position: 'relative',
             }}
           >

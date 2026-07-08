@@ -295,7 +295,7 @@ function ManageChipRow({
   const segmentFill = (i: number) => {
     if (i < approved) return { color: 'var(--status-green)', striped: false };
     if (i < approved + pending) return { color: folderColor, striped: true };
-    return { color: 'rgba(43,45,66,0.08)', striped: false };
+    return { color: 'var(--accent-subtle)', striped: false };
   };
 
   return (

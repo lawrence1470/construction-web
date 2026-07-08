@@ -14,7 +14,7 @@ export default function PageHeader({ title, description }: PageHeaderProps) {
           fontWeight: 'bold',
           color: 'text.primary',
           mb: 1,
-          transition: 'colors 0.15s',
+          transition: 'color 0.15s ease',
         }}
       >
         {title}
@@ -24,7 +24,7 @@ export default function PageHeader({ title, description }: PageHeaderProps) {
           variant="body1"
           sx={{
             color: 'text.secondary',
-            transition: 'colors 0.15s',
+            transition: 'color 0.15s ease',
           }}
         >
           {description}

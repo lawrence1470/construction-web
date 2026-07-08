@@ -291,6 +291,11 @@ function PreviewPane({ project, isCurrent, organizationId, onSwitch }: PreviewPa
           '&:hover': {
             bgcolor: isCurrent ? 'action.disabledBackground' : alpha(theme.palette.primary.main, 0.88),
           },
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
         }}
       >
         {isCurrent ? (
@@ -473,6 +478,11 @@ export default function ProjectSwitcher() {
             bgcolor: 'action.hover',
             borderColor: (theme) => theme.palette.mode === 'dark' ? alpha(theme.palette.divider, 0.8) : '#d4d4d4',
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+          },
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
           },
         }}
       >

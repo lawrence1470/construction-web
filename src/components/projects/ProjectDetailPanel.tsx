@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { FileDropzone } from '@/components/documents/FileDropzone';
 import { DocumentList } from '@/components/documents/DocumentList';
 import { api } from '@/trpc/react';
-import { Box, Typography, IconButton, Paper, Chip } from '@mui/material';
+import { Box, Typography, IconButton, Paper, Chip, Skeleton } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { type Selection, deriveStatus } from '@/lib/utils/gantt';
 
@@ -100,7 +100,7 @@ export function ProjectDetailPanel({ selection, projectId, organizationId }: Pro
       : skipToken
   );
 
-  const { data: documentData } = api.document.listByTask.useQuery(
+  const { data: documentData, isLoading: documentLoading } = api.document.listByTask.useQuery(
     {
       organizationId: organizationId!,
       projectId: projectId!,
@@ -155,7 +155,7 @@ export function ProjectDetailPanel({ selection, projectId, organizationId }: Pro
               bgcolor: 'background.paper',
               border: '1px solid',
               borderColor: 'divider',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
+              boxShadow: 'var(--shadow-card)',
               display: 'inline-flex',
             }}
           >
@@ -247,7 +247,7 @@ export function ProjectDetailPanel({ selection, projectId, organizationId }: Pro
                 flexShrink: 0,
               }}
             >
-              <Folder size={22} style={{ color: 'rgb(245, 158, 11)' }} />
+              <Folder size={22} style={{ color: 'var(--accent-warm)' }} />
             </Box>
             <Box sx={{ minWidth: 0 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.3, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -286,7 +286,7 @@ export function ProjectDetailPanel({ selection, projectId, organizationId }: Pro
         {organizationId && projectId && selection.folderId && (
           <Box sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 1.25 }}>
+              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'text.secondary', lineHeight: 1, userSelect: 'none', display: 'block', mb: 1.25 }}>
                 Upload Documents
               </Typography>
               <FileDropzone
@@ -298,7 +298,7 @@ export function ProjectDetailPanel({ selection, projectId, organizationId }: Pro
             </Box>
 
             <Box>
-              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', mb: 1.25 }}>
+              <Typography sx={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'text.secondary', lineHeight: 1, userSelect: 'none', display: 'block', mb: 1.25 }}>
                 Documents
               </Typography>
               <DocumentList
@@ -310,6 +310,32 @@ export function ProjectDetailPanel({ selection, projectId, organizationId }: Pro
             </Box>
           </Box>
         )}
+      </Box>
+    );
+  }
+
+  // ─── Document selected — loading ──────────────────────────────────────────
+  if (selection.type === 'document' && documentLoading) {
+    return (
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box
+          sx={{
+            px: 2.5,
+            py: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            flexShrink: 0,
+            bgcolor: 'background.paper',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Skeleton variant="rounded" width={38} height={38} sx={{ borderRadius: '12px', flexShrink: 0 }} />
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Skeleton variant="text" width="60%" sx={{ fontSize: '13px' }} />
+              <Skeleton variant="text" width="35%" sx={{ fontSize: '11px' }} />
+            </Box>
+          </Box>
+        </Box>
       </Box>
     );
   }

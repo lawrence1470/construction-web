@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Paper, Typography, useTheme, alpha } from '@mui/material';
+import { Box, Paper, Skeleton, Typography, useTheme, alpha } from '@mui/material';
 import { TrendUp, TrendDown, type Icon } from '@phosphor-icons/react';
 import Sparkline from './Sparkline';
 import { useCountUp } from './hooks/useCountUp';
@@ -19,6 +19,8 @@ interface StatCardProps {
   /** When true, a positive delta renders green (throughput); when false, red (backlog) */
   positiveIsGood?: boolean;
   spark?: number[];
+  /** When true, renders a skeleton in the value slot instead of the number */
+  loading?: boolean;
 }
 
 export default function StatCard({
@@ -30,6 +32,7 @@ export default function StatCard({
   deltaPercent,
   positiveIsGood = true,
   spark,
+  loading = false,
 }: StatCardProps) {
   const theme = useTheme();
   const displayed = useCountUp(value);
@@ -114,9 +117,9 @@ export default function StatCard({
             color: 'text.primary',
           }}
         >
-          {displayed.toLocaleString()}
+          {loading ? <Skeleton variant="text" width={48} /> : displayed.toLocaleString()}
         </Typography>
-        {showDelta && (
+        {!loading && showDelta && (
           <Box
             sx={{
               display: 'inline-flex',
@@ -161,9 +164,11 @@ export default function StatCard({
         </Typography>
       )}
 
-      {spark && spark.some((v) => v > 0) && (
-        <Box sx={{ mt: 'auto' }}>
-          <Sparkline values={spark} color={tone === 'default' ? theme.palette.warm.main : fg} />
+      {spark && (
+        <Box sx={{ mt: 'auto', height: 32 }}>
+          {spark.some((v) => v > 0) && (
+            <Sparkline values={spark} color={tone === 'default' ? theme.palette.warm.main : fg} />
+          )}
         </Box>
       )}
     </Paper>

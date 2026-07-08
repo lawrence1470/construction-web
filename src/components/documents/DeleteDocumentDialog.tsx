@@ -27,6 +27,8 @@ export default function DeleteDocumentDialog({
     onSuccess: () => {
       void utils.document.search.invalidate();
       void utils.document.aiSearch.invalidate();
+      void utils.document.listByFolder.invalidate();
+      void utils.document.countByTask.invalidate();
       onClose();
     },
   });
@@ -42,7 +44,6 @@ export default function DeleteDocumentDialog({
       PaperProps={{
         sx: {
           width: 420,
-          borderRadius: '12px',
           boxShadow: '0px 8px 32px rgba(0,0,0,0.12)',
           overflow: 'hidden',
         },

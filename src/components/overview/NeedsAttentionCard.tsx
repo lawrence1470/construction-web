@@ -38,7 +38,7 @@ export default function NeedsAttentionCard({ orgSlug }: NeedsAttentionCardProps)
               sx={{
                 fontSize: '0.6875rem',
                 fontWeight: 600,
-                color: 'primary.main',
+                color: 'text.primary',
                 lineHeight: 1,
                 display: 'inline-flex',
                 alignItems: 'center',

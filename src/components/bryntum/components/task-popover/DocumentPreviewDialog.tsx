@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Dialog, Box, Typography, Tooltip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   ImageSquare,
   FileText,
@@ -94,7 +95,6 @@ export default function DocumentPreviewDialog({
             maxHeight: '88vh',
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '12px',
             overflow: 'hidden',
           },
         },
@@ -378,10 +378,10 @@ function EdgeNav({
         cursor: 'pointer',
         zIndex: 1,
         color: 'text.secondary',
-        background:
+        background: (theme) =>
           side === 'left'
-            ? 'linear-gradient(90deg, rgba(15,23,42,0.06), transparent)'
-            : 'linear-gradient(270deg, rgba(15,23,42,0.06), transparent)',
+            ? `linear-gradient(90deg, ${alpha(theme.palette.text.primary, 0.06)}, transparent)`
+            : `linear-gradient(270deg, ${alpha(theme.palette.text.primary, 0.06)}, transparent)`,
         opacity: 0,
         transition: 'opacity 0.15s',
         '&:hover': { opacity: 1 },

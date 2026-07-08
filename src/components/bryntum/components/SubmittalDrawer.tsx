@@ -8,6 +8,7 @@ import {
   Typography,
   CircularProgress,
   alpha,
+  useTheme,
 } from '@mui/material';
 import {
   X,
@@ -807,7 +808,7 @@ function SaveBar({
           fontSize: 13,
           fontWeight: 600,
           cursor: !dirty || saving ? 'default' : 'pointer',
-          color: '#fff',
+          color: status === 'saved' ? 'success.contrastText' : 'primary.contrastText',
           bgcolor: status === 'saved' ? 'success.main' : 'primary.main',
           opacity: !dirty && status !== 'saved' ? 0.45 : 1,
           transition: 'background-color 0.25s, transform 0.12s, opacity 0.2s',
@@ -819,7 +820,7 @@ function SaveBar({
       >
         {status === 'saving' ? (
           <>
-            <CircularProgress size={13} thickness={5} sx={{ color: '#fff' }} />
+            <CircularProgress size={13} thickness={5} sx={{ color: 'inherit' }} />
             Saving…
           </>
         ) : status === 'saved' ? (
@@ -991,6 +992,7 @@ function SlotCard({
   onSetDueDate: (dueDate: string) => void;
   onUpload: () => void;
 }) {
+  const theme = useTheme();
   const meta = KIND_META[kind];
   const isReceived = !!doc;
   const isApproved = isReceived && doc.approvalStatus === 'approved';
@@ -1024,11 +1026,11 @@ function SlotCard({
   // Received-but-not-approved is intentionally distinct from approved so the
   // reviewer can tell at a glance which slots still need their decision.
   const cardTintColor = isApproved
-    ? 'var(--mui-palette-success-main, #16a34a)'
+    ? 'success.main'
     : isReceived
       ? RECEIVED_COLOR
       : isOverdue
-        ? 'var(--mui-palette-warning-main, #d97706)'
+        ? 'warning.main'
         : null;
   // Only overdue gets a colored border — received/approved rely on tint + pill
   // for their visual signal so the cards don't shout for attention. Draft
@@ -1046,10 +1048,6 @@ function SlotCard({
         py: 1.5,
         bgcolor: 'background.paper',
         position: 'relative',
-        // Subtle tint conveys state without losing the white surface.
-        backgroundImage: cardTintColor
-          ? `linear-gradient(0deg, var(--mui-palette-background-paper, #fff), var(--mui-palette-background-paper, #fff))`
-          : 'none',
         '&::before': cardTintColor ? {
           content: '""',
           position: 'absolute',
@@ -1157,7 +1155,7 @@ function SlotCard({
         {isReceived ? (
           <>
             {isApproved ? (
-              <CheckCircle size={13} weight="fill" color="var(--mui-palette-success-main, #16a34a)" />
+              <CheckCircle size={13} weight="fill" color={theme.palette.success.main} />
             ) : (
               <Tray size={13} weight="fill" color={RECEIVED_COLOR} />
             )}
@@ -1270,7 +1268,7 @@ function SlotNumberBadge({
   // Approved → solid green ✓. Received (not approved) → solid indigo inbox.
   // Empty slot → soft folder-tinted disc with the slot number.
   const bg = isApproved
-    ? 'var(--mui-palette-success-main, #16a34a)'
+    ? 'success.main'
     : isReceived
       ? RECEIVED_COLOR
       : `${meta.color}1F`;
@@ -1519,7 +1517,7 @@ function EmptyState({
             sx={{
               px: 1.25,
               py: 0.625,
-              borderRadius: '7px',
+              borderRadius: '8px',
               border: '1px solid',
               borderColor: 'divider',
               // Raised above the empty-state card (now action.hover) so the
@@ -1561,6 +1559,7 @@ function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -1600,7 +1599,7 @@ function ConfirmDialog({
               flexShrink: 0,
             }}
           >
-            <WarningCircle size={18} color="var(--mui-palette-warning-main, #d97706)" weight="fill" />
+            <WarningCircle size={18} color={theme.palette.warning.main} weight="fill" />
           </Box>
           <Box>
             <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>{title}</Typography>
@@ -1619,6 +1618,7 @@ function ConfirmDialog({
               border: '1px solid',
               borderColor: 'divider',
               bgcolor: 'background.paper',
+              color: 'text.primary',
               fontFamily: 'inherit',
               fontSize: 12, fontWeight: 600,
               cursor: 'pointer',
@@ -1635,7 +1635,7 @@ function ConfirmDialog({
               border: '1px solid',
               borderColor: 'warning.main',
               bgcolor: 'warning.main',
-              color: '#fff',
+              color: 'warning.contrastText',
               fontFamily: 'inherit',
               fontSize: 12, fontWeight: 600,
               cursor: 'pointer',

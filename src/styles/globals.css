@@ -6,7 +6,7 @@
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
   --bg-input: #f3f4f5;
-  --bg-hover: rgba(0, 0, 0, 0.02);
+  --bg-hover: rgba(0, 0, 0, 0.04);
   --bg-accent: #f3f4f5;
 
   --text-primary: #1a1a2e;
@@ -17,13 +17,13 @@
   --border-light: #f0f0f0;
 
   --accent-primary: #2B2D42;
-  --accent-subtle: rgba(23, 23, 23, 0.06);
+  --accent-subtle: rgba(43, 45, 66, 0.06);
   --accent-contrast: #ffffff;
 
   --sidebar-border: rgba(0, 0, 0, 0.08);
   --sidebar-indicator: #d97706;
   --sidebar-active-bg: rgba(217, 119, 6, 0.1);
-  --sidebar-hover-bg: rgba(23, 23, 23, 0.04);
+  --sidebar-hover-bg: rgba(43, 45, 66, 0.04);
 
   --status-green: #16a34a;
   --status-amber: #d97706;
@@ -39,12 +39,15 @@
      Dark values are stronger: shadows barely read on near-black surfaces. */
   --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.03);
   --shadow-card-hover: 0 2px 4px rgba(15, 23, 42, 0.06), 0 10px 24px rgba(15, 23, 42, 0.07);
+  /* Floating surfaces (menus, popovers) and modal dialogs */
+  --shadow-overlay: 0 8px 28px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-modal: 0 24px 64px -16px rgba(0, 0, 0, 0.2), 0 8px 20px -8px rgba(0, 0, 0, 0.08);
 
   --grid-line: rgba(0, 0, 0, 0.04);
-  --timeline-accent: #171717;
-  --timeline-accent-subtle: rgba(23, 23, 23, 0.06);
+  --timeline-accent: #2B2D42;
+  --timeline-accent-subtle: rgba(43, 45, 66, 0.06);
 
-  --focus-ring: rgba(23, 23, 23, 0.3);
+  --focus-ring: rgba(43, 45, 66, 0.3);
 
   /* Border radius scale */
   --radius-xs: 6px;
@@ -95,8 +98,9 @@
   /* Gantt sleek theme tokens */
   --gantt-header-bg: #f8f8fb;
   --gantt-header-border: rgba(0, 0, 0, 0.06);
-  --gantt-header-font-color: #8D99AE;
+  --gantt-header-font-color: #6b7280; /* = text.secondary — 4.6:1 on #f8f8fb */
   --gantt-row-hover-bg: rgba(43, 45, 66, 0.03);
+  --gantt-row-selected-bg: rgba(43, 45, 66, 0.05);
   --gantt-stripe-bg: rgba(43, 45, 66, 0.015);
   --gantt-row-border-color: rgba(0, 0, 0, 0.05);
   --gantt-column-line-color: rgba(0, 0, 0, 0.04);
@@ -138,6 +142,13 @@
   --sidebar-active-bg: rgba(245, 158, 11, 0.14);
   --sidebar-hover-bg: rgba(255, 255, 255, 0.04);
 
+  /* 400-family mirrors of the light 600-level status colors — the light
+     values fail contrast / glare on near-black. */
+  --status-green: #4ade80;
+  --status-amber: #fbbf24;
+  --status-red: #f87171;
+  --status-blue: #60a5fa;
+
   --accent-warm: #f59e0b;
   --accent-warm-hover: #fbbf24;
   --accent-warm-contrast: #0f1011;
@@ -145,6 +156,8 @@
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.35);
   --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.55), 0 10px 24px rgba(0, 0, 0, 0.45);
+  --shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-modal: 0 24px 64px -16px rgba(0, 0, 0, 0.6), 0 8px 20px -8px rgba(0, 0, 0, 0.45);
 
   --grid-line: rgba(255, 255, 255, 0.06);
   --timeline-accent: #f7f8f8;
@@ -172,6 +185,7 @@
   --gantt-header-border: rgba(255, 255, 255, 0.08);
   --gantt-header-font-color: #8a8f98;
   --gantt-row-hover-bg: rgba(255, 255, 255, 0.04);
+  --gantt-row-selected-bg: rgba(255, 255, 255, 0.07);
   --gantt-stripe-bg: rgba(255, 255, 255, 0.015);
   --gantt-row-border-color: rgba(255, 255, 255, 0.06);
   --gantt-column-line-color: rgba(255, 255, 255, 0.04);
@@ -235,6 +249,12 @@ body {
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(16px) scale(0.99); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes page-enter {
+    from, to { opacity: 1; transform: none; }
+  }
 }
 
 /* ============================================
@@ -396,7 +416,7 @@ body {
 .bryntum-gantt-container .b-lowest .b-sch-header-timeaxis-cell {
   font-size: 10px !important;
   font-weight: 400 !important;
-  color: var(--text-muted) !important;
+  color: var(--gantt-header-font-color) !important;
 }
 
 /* ── Row Styling ─────────────────────────────────────────────── */
@@ -414,7 +434,7 @@ body {
 
 /* Selected row */
 .bryntum-gantt-container .b-grid-row.b-selected .b-grid-cell {
-  background-color: rgba(43, 45, 66, 0.05) !important;
+  background-color: var(--gantt-row-selected-bg) !important;
 }
 
 /* ── Edit mode treatment ─────────────────────────────────────────
@@ -714,9 +734,11 @@ body {
   outline-offset: 2px;
   z-index: 6 !important;
 }
-.bryntum-gantt-container .b-gantt-task.gantt-link-c1 { --gantt-link-c: #2563eb; } /* ① predecessor */
-.bryntum-gantt-container .b-gantt-task.gantt-link-c2 { --gantt-link-c: #7c3aed; } /* ② successor */
-.bryntum-gantt-container .b-gantt-task.gantt-link-c3 { --gantt-link-c: var(--accent-primary, #2B2D42); } /* ③+ chain */
+.bryntum-gantt-container .b-gantt-task.gantt-link-c1 { --gantt-link-c: #2563eb; --gantt-link-badge-fg: #fff; } /* ① predecessor */
+.bryntum-gantt-container .b-gantt-task.gantt-link-c2 { --gantt-link-c: #7c3aed; --gantt-link-badge-fg: #fff; } /* ② successor */
+/* ③+ chain — accent-primary flips to near-white in dark, so the badge digit
+   must use the paired contrast token instead of hardcoded white. */
+.bryntum-gantt-container .b-gantt-task.gantt-link-c3 { --gantt-link-c: var(--accent-primary, #2B2D42); --gantt-link-badge-fg: var(--accent-contrast, #fff); }
 .bryntum-gantt-container .b-gantt-task.gantt-link-selected .gantt-link-badge {
   position: absolute;
   top: -9px;
@@ -730,7 +752,7 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--gantt-link-c, #2563eb);
-  color: #fff;
+  color: var(--gantt-link-badge-fg, #fff);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 800;
@@ -1032,4 +1054,45 @@ body {
   .b-menu.b-popup .b-menu-item:focus-within .b-icon-sub-menu {
     transform: none;
   }
+}
+
+/* ============================================
+   Mapbox popups — Mapbox ships a hardcoded white
+   popup surface; retheme it with app tokens so
+   popup content (text.primary) stays readable in
+   dark mode.
+   ============================================ */
+.mapboxgl-popup-content {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-overlay);
+}
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip {
+  border-top-color: var(--bg-card);
+}
+.mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip {
+  border-bottom-color: var(--bg-card);
+}
+.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: var(--bg-card);
+}
+.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: var(--bg-card);
+}
+.mapboxgl-popup-close-button {
+  color: var(--text-secondary);
+}
+
+/* Keyboard focus for plain-anchor nav rows (Sidebar / MobileDrawer). The
+   rows are next/link <a> elements, so :focus-visible must come from CSS. */
+a.nav-focusable:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 8px;
 }

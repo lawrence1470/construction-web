@@ -5,7 +5,6 @@ import { Box, Typography, Tooltip, useTheme, alpha } from '@mui/material';
 import {
   DownloadSimple,
   Trash,
-  DotsThree,
   FileText,
   FileXls,
   CheckSquare,
@@ -52,7 +51,7 @@ export default function DocumentCardCompact({ doc, organizationId }: DocumentCar
         gap: 1.5,
         px: '14px',
         py: '10px',
-        borderRadius: '10px',
+        borderRadius: '12px',
         border: '1px solid',
         borderColor: hovered ? alpha(theme.palette.primary.main, 0.3) : 'divider',
         borderLeft: isUnassigned ? `3px solid ${theme.palette.warning.main}` : undefined,
@@ -61,12 +60,14 @@ export default function DocumentCardCompact({ doc, organizationId }: DocumentCar
         transition: 'border-color 0.2s, background-color 0.15s, transform 0.18s ease, box-shadow 0.18s ease',
         cursor: 'pointer',
         willChange: 'transform',
+        boxShadow: 'var(--shadow-card)',
         '&:hover': {
           bgcolor: alpha(theme.palette.primary.main, 0.02),
           transform: 'translateY(-1px)',
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 4px 12px rgba(0,0,0,0.35)'
-            : '0 4px 12px rgba(43,45,66,0.08)',
+          boxShadow: 'var(--shadow-card-hover)',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '&:hover': { transform: 'none' },
         },
       }}
     >
@@ -274,24 +275,6 @@ export default function DocumentCardCompact({ doc, organizationId }: DocumentCar
           }}
         >
           <Trash size={14} />
-        </Box>
-        <Box
-          component="button"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 28,
-            height: 28,
-            borderRadius: '6px',
-            border: 'none',
-            bgcolor: 'transparent',
-            cursor: 'pointer',
-            color: 'text.secondary',
-            '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
-          }}
-        >
-          <DotsThree size={14} />
         </Box>
       </Box>
 

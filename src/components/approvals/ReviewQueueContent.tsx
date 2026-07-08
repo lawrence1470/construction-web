@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Tabs, Tab, ToggleButton, ToggleButtonGroup, Alert } from '@mui/material';
+import { Box, Typography, Tabs, Tab, ToggleButton, ToggleButtonGroup, Alert, Skeleton, alpha } from '@mui/material';
 import { SealCheck, Clock, WarningCircle, PaperPlaneTilt, ClipboardText } from '@phosphor-icons/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { api } from '@/trpc/react';
@@ -138,17 +138,7 @@ export default function ReviewQueueContent() {
         overdueLoading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {[0, 1, 2].map((i) => (
-              <Box
-                key={i}
-                sx={{
-                  height: 60,
-                  borderRadius: '10px',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: 'action.hover',
-                  opacity: 0.5,
-                }}
-              />
+              <Skeleton key={i} variant="rounded" height={60} sx={{ borderRadius: '12px' }} />
             ))}
           </Box>
         ) : filteredOverdue.length === 0 ? (
@@ -169,17 +159,7 @@ export default function ReviewQueueContent() {
       ) : isLoading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           {[0, 1, 2].map((i) => (
-            <Box
-              key={i}
-              sx={{
-                height: 72,
-                borderRadius: '10px',
-                border: '1px solid',
-                borderColor: 'divider',
-                bgcolor: 'action.hover',
-                opacity: 0.5,
-              }}
-            />
+            <Skeleton key={i} variant="rounded" height={72} sx={{ borderRadius: '12px' }} />
           ))}
         </Box>
       ) : documents.length === 0 ? (
@@ -247,10 +227,10 @@ function OverdueSlotRow({ slot }: { slot: OverdueSlot }) {
         gap: 1.5,
         px: 1.75,
         py: 1.25,
-        borderRadius: '10px',
+        borderRadius: '12px',
         border: '1px solid',
-        borderColor: 'rgba(217,119,6,0.35)',
-        bgcolor: 'rgba(217,119,6,0.06)',
+        borderColor: (theme) => alpha(theme.palette.warm.main, 0.35),
+        bgcolor: 'warm.subtle',
       }}
     >
       <Box

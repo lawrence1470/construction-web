@@ -225,7 +225,7 @@ export default function LocationWeather({ location, organizationId }: LocationWe
               mt: 1,
               minWidth: 280,
               maxWidth: 340,
-              borderRadius: '10px',
+              borderRadius: '12px',
               border: '1px solid',
               borderColor: 'divider',
               overflow: 'hidden',

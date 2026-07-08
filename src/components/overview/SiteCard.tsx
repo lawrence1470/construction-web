@@ -101,7 +101,7 @@ export default function SiteCard({ orgSlug }: SiteCardProps) {
                   sx={{
                     fontSize: '0.6875rem',
                     fontWeight: 500,
-                    color: 'primary.main',
+                    color: 'text.primary',
                     lineHeight: 1,
                     '&:hover': { textDecoration: 'underline' },
                   }}

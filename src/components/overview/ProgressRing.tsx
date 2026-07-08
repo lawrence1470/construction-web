@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useCountUp } from './hooks/useCountUp';
 
 interface ProgressRingProps {
@@ -16,6 +16,7 @@ interface ProgressRingProps {
  */
 export default function ProgressRing({ percent, size = 132 }: ProgressRingProps) {
   const theme = useTheme();
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const clamped = Math.max(0, Math.min(100, percent));
   const displayed = useCountUp(clamped);
 
@@ -29,7 +30,7 @@ export default function ProgressRing({ percent, size = 132 }: ProgressRingProps)
     const raf = requestAnimationFrame(() => setArmed(true));
     return () => cancelAnimationFrame(raf);
   }, []);
-  const offset = circumference * (1 - (armed ? clamped : 0) / 100);
+  const offset = circumference * (1 - (armed || reducedMotion ? clamped : 0) / 100);
 
   return (
     <Box sx={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -44,7 +45,7 @@ export default function ProgressRing({ percent, size = 132 }: ProgressRingProps)
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={theme.palette.divider}
+          stroke={theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.14)' : theme.palette.divider}
           strokeWidth={strokeWidth}
         />
         <circle
@@ -57,7 +58,11 @@ export default function ProgressRing({ percent, size = 132 }: ProgressRingProps)
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          style={{
+            transition: reducedMotion
+              ? 'none'
+              : 'stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
         />
       </Box>
       <Box

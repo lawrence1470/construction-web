@@ -1116,7 +1116,7 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
         .bryntum-gantt-container {
           --b-row-reorder-indicator-size: 3px;
           --b-row-reorder-indicator-color: var(--accent-primary);
-          --b-row-reorder-indicator-invalid-color: #ef4444;
+          --b-row-reorder-indicator-invalid-color: var(--status-red);
         }
         /* Lift the row being dragged so the pickup reads clearly. */
         .b-row-reorder-proxy {

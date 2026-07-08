@@ -1,9 +1,10 @@
 'use client';
 
-import { Box, Typography, useTheme } from '@mui/material';
-import { Calendar, FileText, FileSpreadsheet, User as UserIcon, Image as ImageIcon } from 'lucide-react';
+import { Box, Typography, useTheme, alpha } from '@mui/material';
+import { CalendarBlank, User as UserIcon } from '@phosphor-icons/react';
 import { format } from 'date-fns';
 import { formatFileSize } from '@/lib/utils/formatting';
+import { getFileIcon } from '@/lib/utils/files';
 import CategoryBadge from '@/components/documents/CategoryBadge';
 import ApprovalToggle from './ApprovalToggle';
 
@@ -34,14 +35,6 @@ interface ReviewCardProps {
   memberRole: string;
 }
 
-function FileIcon({ mimeType, color }: { mimeType: string; color: string }) {
-  if (mimeType.startsWith('image/')) return <ImageIcon size={20} style={{ color }} />;
-  if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType === 'text/csv') {
-    return <FileSpreadsheet size={20} style={{ color }} />;
-  }
-  return <FileText size={20} style={{ color }} />;
-}
-
 export default function ReviewCard({ doc, organizationId, projectId, memberRole }: ReviewCardProps) {
   const theme = useTheme();
   const uploaderLabel = doc.uploadedBy.name ?? doc.uploadedBy.email;
@@ -56,14 +49,19 @@ export default function ReviewCard({ doc, organizationId, projectId, memberRole 
         gap: 2,
         px: 2,
         py: 1.5,
-        borderRadius: '10px',
+        borderRadius: '12px',
         border: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
-        transition: 'border-color 0.15s, box-shadow 0.15s',
+        transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s ease',
         '&:hover': {
-          borderColor: 'action.hover',
-          boxShadow: 1,
+          borderColor: (theme) => alpha(theme.palette.text.primary, 0.16),
+          boxShadow: 'var(--shadow-card-hover)',
+          transform: 'translateY(-1px)',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
+          '&:hover': { transform: 'none' },
         },
       }}
     >
@@ -80,7 +78,7 @@ export default function ReviewCard({ doc, organizationId, projectId, memberRole 
           flexShrink: 0,
         }}
       >
-        <FileIcon mimeType={doc.mimeType} color={theme.palette.text.secondary} />
+        {getFileIcon(doc.mimeType)}
       </Box>
 
       {/* Name + meta */}
@@ -113,7 +111,7 @@ export default function ReviewCard({ doc, organizationId, projectId, memberRole 
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Calendar size={11} style={{ color: theme.palette.text.secondary }} />
+            <CalendarBlank size={11} style={{ color: theme.palette.text.secondary }} />
             <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.2 }}>
               {format(new Date(doc.createdAt), 'MMM d, yyyy')}
             </Typography>

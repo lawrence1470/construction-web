@@ -186,7 +186,7 @@ function ResetPasswordForm() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
+                  color: 'warm.contrastText',
                 }}
               >
                 <LogoIcon size={28} />

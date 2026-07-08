@@ -35,11 +35,19 @@ export default function OverviewContent() {
   const { projectId, projectName, projectSlug, projectImageUrl, projectLocation, organizationId } =
     useProjectContext();
 
-  const { data: overview } = api.project.overview.useQuery(
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    isError: overviewError,
+  } = api.project.overview.useQuery(
     { projectId },
     { enabled: !!projectId, retry: false },
   );
-  const { data: requirementStats } = api.gantt.requirementStats.useQuery(
+  const {
+    data: requirementStats,
+    isLoading: statsLoading,
+    isError: statsError,
+  } = api.gantt.requirementStats.useQuery(
     { organizationId, projectId },
     { enabled: !!organizationId && !!projectId, retry: false },
   );
@@ -53,6 +61,19 @@ export default function OverviewContent() {
   const completedShare = taskCount > 0 ? Math.round((completedCount / taskCount) * 100) : 0;
 
   const ganttHref = `/${orgSlug}/projects/${projectSlug}/gantt`;
+
+  if (overviewError || statsError) {
+    return (
+      <Box sx={{ p: 3, maxWidth: 1280, mx: 'auto' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <OverviewHero name={projectName} location={projectLocation} imageUrl={projectImageUrl} />
+          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', py: 2 }}>
+            Couldn&apos;t load project stats. Try refreshing the page.
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3, maxWidth: 1280, mx: 'auto' }}>
@@ -72,16 +93,18 @@ export default function OverviewContent() {
             label="Total tasks"
             value={taskCount}
             icon={ListChecks}
-            sublabel={`${overview?.inProgressCount ?? 0} in progress`}
+            loading={overviewLoading}
+            sublabel={overviewLoading ? '—' : `${overview?.inProgressCount ?? 0} in progress`}
             spark={scheduledSeries}
           />
           <StatCard
             label="Completed"
             value={completedCount}
             icon={CheckCircle}
-            tone="success"
-            sublabel={`${completedShare}% of all tasks`}
-            deltaPercent={weekDelta(completedSeries)}
+            tone={overviewLoading ? 'default' : 'success'}
+            loading={overviewLoading}
+            sublabel={overviewLoading ? '—' : `${completedShare}% of all tasks`}
+            deltaPercent={overviewLoading ? null : weekDelta(completedSeries)}
             positiveIsGood
             spark={completedSeries}
           />
@@ -89,15 +112,29 @@ export default function OverviewContent() {
             label="Behind schedule"
             value={overdueCount}
             icon={ClockCountdown}
-            tone={overdueCount > 0 ? 'danger' : 'success'}
-            sublabel={overdueCount > 0 ? 'tasks past their finish date' : 'everything on track'}
+            tone={overviewLoading ? 'default' : overdueCount > 0 ? 'danger' : 'success'}
+            loading={overviewLoading}
+            sublabel={
+              overviewLoading
+                ? '—'
+                : overdueCount > 0
+                  ? 'tasks past their finish date'
+                  : 'everything on track'
+            }
           />
           <StatCard
             label="Docs received"
             value={requirementStats?.totalUploaded ?? 0}
             icon={FileArrowUp}
-            tone="accent"
-            sublabel={`of ${requirementStats?.totalRequired ?? 0} required`}
+            tone={statsLoading ? 'default' : 'accent'}
+            loading={statsLoading}
+            sublabel={
+              statsLoading
+                ? '—'
+                : (requirementStats?.totalRequired ?? 0) > 0
+                  ? `of ${requirementStats?.totalRequired} required`
+                  : 'no documents required yet'
+            }
           />
         </Box>
 
@@ -202,7 +239,17 @@ export default function OverviewContent() {
           </OverviewCard>
 
           <NeedsAttentionCard orgSlug={orgSlug} />
-          <SiteCard orgSlug={orgSlug} />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: 0,
+              gridColumn: { md: '1 / -1', lg: 'auto' },
+              '& > *': { flex: 1 },
+            }}
+          >
+            <SiteCard orgSlug={orgSlug} />
+          </Box>
         </Box>
       </Box>
     </Box>

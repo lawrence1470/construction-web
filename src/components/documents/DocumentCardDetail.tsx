@@ -72,13 +72,15 @@ export default function DocumentCardDetail({ doc, organizationId }: DocumentCard
         overflow: 'hidden',
         transition: 'border-color 0.2s, transform 0.18s ease, box-shadow 0.18s ease',
         willChange: 'transform',
+        boxShadow: 'var(--shadow-card)',
         '&:hover': {
           borderColor: alpha(theme.palette.primary.main, 0.3),
           borderLeftColor: isUnassigned ? theme.palette.warning.main : undefined,
-          transform: 'translateY(-2px)',
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 8px 20px rgba(0,0,0,0.4)'
-            : '0 8px 20px rgba(43,45,66,0.10)',
+          transform: 'translateY(-1px)',
+          boxShadow: 'var(--shadow-card-hover)',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '&:hover': { transform: 'none' },
         },
       }}
     >

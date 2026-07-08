@@ -36,7 +36,6 @@ export default function AccountSettingsModal({ open, onOpenChange }: AccountSett
         sx: {
           width: 720,
           height: 520,
-          borderRadius: '16px',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'row',

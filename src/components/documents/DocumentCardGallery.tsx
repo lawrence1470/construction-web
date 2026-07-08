@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Box, Typography, useTheme, alpha } from '@mui/material';
 import { Download, Trash2, FileText, FileSpreadsheet } from 'lucide-react';
-import { formatFileSize } from '@/lib/utils/formatting';
 import { isApprovableFolder } from '@/lib/folders';
 import { useOrgContext } from '@/components/providers/OrgProvider';
 import { useProjectContext } from '@/components/providers/ProjectProvider';
@@ -32,7 +31,7 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
       onMouseLeave={() => setHovered(false)}
       sx={{
         position: 'relative',
-        borderRadius: '10px',
+        borderRadius: '12px',
         border: '1px solid',
         borderColor: isUnassigned
           ? alpha(theme.palette.warning.main, 0.5)
@@ -44,11 +43,13 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
         transition: 'border-color 0.2s, transform 0.18s ease, box-shadow 0.18s ease',
         cursor: 'pointer',
         willChange: 'transform',
+        boxShadow: 'var(--shadow-card)',
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 8px 20px rgba(0,0,0,0.4)'
-            : '0 8px 20px rgba(43,45,66,0.10)',
+          transform: 'translateY(-1px)',
+          boxShadow: 'var(--shadow-card-hover)',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '&:hover': { transform: 'none' },
         },
       }}
     >
@@ -76,6 +77,33 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
             ? <FileSpreadsheet size={32} style={{ color: theme.palette.text.disabled }} />
             : <FileText size={32} style={{ color: theme.palette.text.disabled }} />
         )}
+      </Box>
+
+      {/* Persistent caption bar */}
+      <Box
+        sx={{
+          height: 28,
+          px: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          minWidth: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 11,
+            fontWeight: 600,
+            lineHeight: 1,
+            color: 'text.primary',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {doc.name}
+        </Typography>
       </Box>
 
       {/* Persistent unassigned indicator (top-left) — mutually exclusive with approval pill (unassigned has no folder) */}
@@ -134,11 +162,11 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: 28,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.5) 100%)',
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%)',
             borderRadius: '9px',
           }}
         >
@@ -185,37 +213,6 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
             >
               <Trash2 size={14} />
             </Box>
-          </Box>
-
-          {/* Bottom info */}
-          <Box sx={{ p: '8px' }}>
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 600,
-                lineHeight: 1.3,
-                color: '#fff',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {doc.name}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 10,
-                lineHeight: 1.3,
-                color: 'rgba(255,255,255,0.7)',
-                mt: '2px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {formatFileSize(doc.size)}
-              {doc.task ? ` · ${doc.task.name}` : ''}
-            </Typography>
           </Box>
         </Box>
       )}

@@ -51,7 +51,9 @@ export const lightTheme: Theme = createTheme({
     },
     divider: '#e6e6e6', // Linear light border
     action: {
-      hover: 'rgba(0,0,0,0.02)',        // Linear ghost background
+      // 0.02 composited over #f7f8f8 is imperceptible (~5 RGB points);
+      // 0.04 keeps the ghost feel while actually reading as hover.
+      hover: 'rgba(0,0,0,0.04)',
       selected: 'rgba(43, 45, 66, 0.08)',
       disabled: '#e6e6e6',
     },
@@ -99,8 +101,8 @@ export const lightTheme: Theme = createTheme({
           boxShadow: 'none',
           '&:hover': { boxShadow: 'none' },
           '&.Mui-disabled': {
-            backgroundColor: '#D9DBE1',
-            color: '#8D99AE',
+            backgroundColor: '#e6e6e6',
+            color: '#9ca3af',
             opacity: 0.7,
           },
           '& .MuiButton-startIcon svg, & .MuiButton-endIcon svg': { width: 16, height: 16 },
@@ -127,6 +129,39 @@ export const lightTheme: Theme = createTheme({
             boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.08)}`,
           },
         }),
+      },
+    },
+    // Elevation is carried by borders + the --shadow-* tokens, not MUI's
+    // Material Design defaults. backgroundImage: 'none' also disables the
+    // dark-mode elevation overlay so papers stay on the token surface.
+    MuiPaper: {
+      styleOverrides: {
+        root: { backgroundImage: 'none' },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          borderRadius: 12,
+          border: '1px solid',
+          borderColor: theme.palette.divider,
+          boxShadow: 'var(--shadow-overlay)',
+        }),
+      },
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          borderRadius: 12,
+          border: '1px solid',
+          borderColor: theme.palette.divider,
+          boxShadow: 'var(--shadow-overlay)',
+        }),
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: { borderRadius: 16, boxShadow: 'var(--shadow-modal)' },
       },
     },
   },
@@ -245,11 +280,11 @@ lightTheme.palette.card = {
   background: '#FFFFFF', // $--card
 };
 lightTheme.palette.input = {
-  background: '#D9DBE1', // $--input
+  background: '#f3f4f5', // matches --bg-input (neutral ramp, not legacy blue-gray)
 };
 lightTheme.palette.sidebar = {
   background: '#FFFFFF',   // $--sidebar
-  border: '#D9DBE1',       // $--sidebar-border
+  border: '#e6e6e6',       // matches divider — one gray family at the sidebar seam
   indicator: '#d97706',    // active bar — signature amber accent
   activeBg: '#FFFFFF',     // $--card
   hoverBg: '#F0F0F3',      // $--sidebar-accent
@@ -260,8 +295,10 @@ lightTheme.palette.accent = {
   gradientEnd: '#1A1C2B',
 };
 lightTheme.palette.status = {
-  active: '#22C55E',
-  inProgress: '#F59E0B',
+  // 600-level ramp — matches --status-green/--status-amber so one green and
+  // one amber mean "active"/"in progress" app-wide.
+  active: '#16a34a',
+  inProgress: '#d97706',
   onHold: '#8D99AE',
   completed: '#3B82F6',
   archived: '#8D99AE',
@@ -288,7 +325,7 @@ lightTheme.palette.docExplorer = {
   destructiveMain: '#DC2626',
   destructiveDark: '#B91C1C',
   destructiveLight: '#FEE2E2',
-  linkedGreen: '#059669',
+  linkedGreen: '#16a34a', // aligned with --status-green
   badgeBg: '#DFDFE6',
   aiPurple: '#A855F7',
 };
@@ -298,15 +335,21 @@ export const darkTheme: Theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#4A4D6A',     // lighter navy so it reads on dark
-      light: '#6B6F8D',
-      dark: '#2B2D42',
-      contrastText: '#FFFFFF',
+      // Navy lifted into a periwinkle that actually reads as a foreground on
+      // dark surfaces (6.9:1 on paper, 7.5:1 on default). Contained buttons
+      // become light-fill/dark-text — the same convention as
+      // --accent-primary #f7f8f8 + --accent-contrast #0f1011.
+      main: '#9BA1C6',
+      light: '#B4B9D6',
+      dark: '#6B6F8D',
+      contrastText: '#0f1011',
     },
     secondary: {
-      main: '#191a1b',
-      light: '#28282c',
-      dark: '#0f1011',
+      // "Subtle bg" tier — must sit visibly ABOVE background.paper #191a1b
+      // (the old #191a1b collided with paper exactly, erasing selected states).
+      main: '#2b2c2d',
+      light: '#333437',
+      dark: '#222324',
     },
     error: {
       main: '#F87171',
@@ -403,7 +446,9 @@ export const darkTheme: Theme = createTheme({
         root: ({ theme }) => ({
           transition: 'box-shadow 0.15s ease',
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: theme.palette.divider,
+            // Slightly stronger than divider (0.08) — empty fields on a dark
+            // dialog are otherwise near-invisible at rest.
+            borderColor: 'rgba(255,255,255,0.14)',
             transition: 'border-color 0.15s ease',
           },
           '&:hover:not(.Mui-disabled) .MuiOutlinedInput-notchedOutline': {
@@ -416,6 +461,38 @@ export const darkTheme: Theme = createTheme({
             boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.08)}`,
           },
         }),
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        // Kill MUI's dark elevation overlay (white gradient scaled by
+        // elevation) so Menus/Dialogs stay pinned to the #191a1b paper tier.
+        root: { backgroundImage: 'none' },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          borderRadius: 12,
+          border: '1px solid',
+          borderColor: theme.palette.divider,
+          boxShadow: 'var(--shadow-overlay)',
+        }),
+      },
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          borderRadius: 12,
+          border: '1px solid',
+          borderColor: theme.palette.divider,
+          boxShadow: 'var(--shadow-overlay)',
+        }),
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: { borderRadius: 16, boxShadow: 'var(--shadow-modal)' },
       },
     },
   },
@@ -444,10 +521,12 @@ darkTheme.palette.accent = {
   gradientEnd: '#d0d6e0',
 };
 darkTheme.palette.status = {
-  active: '#22C55E',
-  inProgress: '#F59E0B',
+  // 400-family mirrors — same lift the error/warning/info/success families
+  // already get in dark (saturated 500s glare on near-black).
+  active: '#4ade80',
+  inProgress: '#fbbf24',
   onHold: '#8D99AE',
-  completed: '#3B82F6',
+  completed: '#60a5fa',
   archived: '#8D99AE',
   activeBg: 'rgba(34,197,94,0.15)',
   activeText: '#4ade80',

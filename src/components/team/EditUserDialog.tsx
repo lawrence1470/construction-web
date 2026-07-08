@@ -405,7 +405,7 @@ export default function EditUserDialog({
                                     transition: 'background-color 0.15s, border 0.15s',
                                   }}
                                 >
-                                  {checked && <Check size={11} weight="bold" color="#fff" />}
+                                  {checked && <Check size={11} weight="bold" color={theme.palette.primary.contrastText} />}
                                 </Box>
                               </Box>
                             );

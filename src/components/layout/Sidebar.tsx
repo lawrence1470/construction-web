@@ -246,7 +246,8 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 {isDisabled ? (
                   <Box>{content}</Box>
                 ) : (
-                  <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <Link href={href} className="nav-focusable"
+                style={{ textDecoration: 'none', color: 'inherit' }}>
                     {content}
                   </Link>
                 )}
@@ -259,6 +260,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               <Link
                 key={item.id}
                 href={href}
+                className="nav-focusable"
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 {content}

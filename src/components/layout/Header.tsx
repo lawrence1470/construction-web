@@ -125,7 +125,7 @@ export default function Header({ onMenuOpen }: HeaderProps) {
             </IconButton>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-80" style={{ maxHeight: 400, overflow: 'auto' }}>
+          <DropdownMenuContent align="end" slotProps={{ paper: { sx: { width: 320, maxHeight: 400, overflow: 'auto' } } }}>
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Notifications</Typography>
               {unreadCount > 0 && (
