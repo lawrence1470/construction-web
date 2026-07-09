@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Dialog, alpha, Box, Typography } from '@mui/material';
 import { Check } from '@phosphor-icons/react';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { useOrgFromUrl } from '@/hooks/useOrgFromUrl';
 import { useSession } from '@/lib/auth-client';
-import { api } from '@/trpc/react';
+import { useLoading } from '@/components/providers/LoadingProvider';
 import ProjectFormBody from '@/components/projects/ProjectFormBody';
 import AddProjectMembersStep from '@/components/projects/AddProjectMembersStep';
 import TemplatePickerStep, {
@@ -33,6 +34,8 @@ export default function AddProjectDialog({
   const { orgSlug, activeOrganizationId } = useOrgFromUrl();
   const { data: session } = useSession();
   const { showSnackbar } = useSnackbar();
+  const { showLoading } = useLoading();
+  const router = useRouter();
   const currentUserId = session?.user?.id;
 
   const [step, setStep] = useState<Step>('template');
@@ -51,67 +54,44 @@ export default function AddProjectDialog({
     }
   }, [open]);
 
-  // Pre-fetch org members so we can decide whether to skip step 2
-  const { data: orgMembers, isSuccess: orgMembersLoaded } =
-    api.member.list.useQuery(
-      { organizationId: activeOrganizationId },
-      { enabled: open && !!activeOrganizationId }
-    );
-
-  // Only treat the org as confirmed-empty after a successful query resolves.
-  // While the query is in-flight we err toward showing step 2 (which has its
-  // own empty state) so the members step is never silently skipped.
-  const confirmedNoOtherMembers =
-    orgMembersLoaded &&
-    !!currentUserId &&
-    orgMembers.filter((m) => m.user.id !== currentUserId).length === 0;
-
   const handleClose = () => {
+    onOpenChange(false);
+  };
+
+  const navigateToProject = (project: CreatedProject) => {
+    showLoading('Opening project'); // auto-hides on pathname change
+    router.push(`/${orgSlug}/projects/${project.slug}/gantt`);
     onOpenChange(false);
   };
 
   const handleProjectCreated = (project: CreatedProject) => {
     setCreatedProject(project);
-    if (currentUserId && !confirmedNoOtherMembers) {
+    if (currentUserId) {
       setStep('members');
     } else {
-      showSnackbar(
-        `"${project.name}" created — switch to it in the project dropdown`,
-        'success'
-      );
-      handleClose();
+      showSnackbar(`"${project.name}" created`, 'success');
+      navigateToProject(project);
     }
   };
 
   const handleMembersComplete = () => {
     if (createdProject) {
-      showSnackbar(
-        `"${createdProject.name}" is ready`,
-        'success'
-      );
+      navigateToProject(createdProject);
     }
-    handleClose();
   };
 
   const handleMembersSkip = () => {
     if (createdProject) {
-      showSnackbar(
-        `"${createdProject.name}" created — switch to it in the project dropdown`,
-        'success'
-      );
+      showSnackbar(`"${createdProject.name}" created`, 'success');
+      navigateToProject(createdProject);
     }
-    handleClose();
   };
-
-  // Members step only appears when the org has other members. Until the query
-  // resolves we assume it might appear (3-dot stepper). After it resolves we
-  // can confidently shrink to a 2-dot stepper for solo orgs.
-  const willHaveMembersStep = !!currentUserId && !confirmedNoOtherMembers;
-  const totalSteps = willHaveMembersStep ? 3 : 2;
 
   return (
     <Dialog
       open={open}
+      // Escape/backdrop stays blocked on the members step — protects pending
+      // invites/selections; both explicit exits (Add, Skip) navigate away.
       onClose={step === 'members' ? undefined : handleClose}
       maxWidth={false}
       PaperProps={{
@@ -123,7 +103,7 @@ export default function AddProjectDialog({
         },
       }}
     >
-      <Stepper currentStep={step} totalSteps={totalSteps} />
+      <Stepper currentStep={step} />
 
       {step === 'template' && (
         <TemplatePickerStep
@@ -161,19 +141,15 @@ export default function AddProjectDialog({
   );
 }
 
-function Stepper({
-  currentStep,
-  totalSteps,
-}: {
-  currentStep: Step;
-  totalSteps: 2 | 3;
-}) {
+const TOTAL_STEPS = 3;
+
+function Stepper({ currentStep }: { currentStep: Step }) {
   // template (1) → create (2) → members (3)
   const currentIndex =
     currentStep === 'template' ? 1 : currentStep === 'create' ? 2 : 3;
 
   const dots: Array<{ index: number; state: 'done' | 'active' | 'pending' }> = [];
-  for (let i = 1; i <= totalSteps; i++) {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
     dots.push({
       index: i,
       state: i < currentIndex ? 'done' : i === currentIndex ? 'active' : 'pending',
@@ -189,7 +165,7 @@ function Stepper({
         gap: 0.75,
         mb: 2,
       }}
-      aria-label={`Step ${currentIndex} of ${totalSteps}`}
+      aria-label={`Step ${currentIndex} of ${TOTAL_STEPS}`}
     >
       {dots.map((dot, idx) => (
         <Box
