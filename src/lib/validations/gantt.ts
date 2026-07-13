@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CSI_SUBDIVISION_MAP, CSI_DIVISION_MAP } from "@/lib/constants/csiCodes";
+import { isValidCsiCode } from "@/lib/constants/csiCodeSet";
 
 // Load input schema
 export const ganttLoadInputSchema = z.object({
@@ -35,7 +35,7 @@ const taskRecordSchema = z.object({
   iconCls: z.string().nullable().optional(),
   note: z.string().nullable().optional(),
   csiCode: z.string().nullable().optional().refine(
-    (val) => val == null || CSI_SUBDIVISION_MAP.has(val) || CSI_DIVISION_MAP.has(val),
+    (val) => val == null || isValidCsiCode(val),
     { message: "Invalid CSI code" },
   ),
   baselines: z.any().optional(),

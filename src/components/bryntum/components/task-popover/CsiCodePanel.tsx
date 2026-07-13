@@ -1,6 +1,14 @@
 'use client';
 
-import { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  memo,
+  useCallback,
+  useRef,
+  useDeferredValue,
+} from 'react';
 import {
   Tag,
   CaretDown,
@@ -17,11 +25,8 @@ import { Box, Typography, IconButton, InputBase, Divider, CircularProgress } fro
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { api } from '@/trpc/react';
 import { trackUpload } from '@/store/uploadStatusStore';
-import {
-  CSI_TREE,
-  CSI_SUBDIVISION_MAP,
-  type CsiSection,
-} from '@/lib/constants/csiCodes';
+import { type CsiSection } from '@/lib/constants/csiCodes';
+import { useCsiData } from '@/lib/constants/useCsiData';
 import type { BryntumGanttInstance } from '../../types';
 import type { PreviewDoc } from './types';
 
@@ -210,6 +215,10 @@ export default function CsiCodePanel({
   onClose,
 }: CsiCodePanelProps) {
   const { showSnackbar } = useSnackbar();
+  // The full CSI dataset (names + tree) is lazy-loaded on mount — its 606KB JSON
+  // lives in an async chunk, so opening the panel is what pulls it in.
+  const csiData = useCsiData();
+  const tree = csiData?.tree;
   const [search, setSearch] = useState('');
   const [expandedDivision, setExpandedDivision] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -226,8 +235,8 @@ export default function CsiCodePanel({
   // Auto-expand the division — and the Level-2 group — containing the current
   // code so the selected row is visible when the panel opens.
   useEffect(() => {
-    if (!displayCode) return;
-    const subEntry = CSI_SUBDIVISION_MAP.get(displayCode);
+    if (!displayCode || !csiData) return;
+    const subEntry = csiData.subdivisionMap.get(displayCode);
     if (!subEntry) return;
     setExpandedDivision(subEntry.division.code);
     const yy = displayCode.split(' ')[1] ?? '00';
@@ -242,15 +251,20 @@ export default function CsiCodePanel({
         return next;
       });
     }
-  }, [displayCode]);
+  }, [displayCode, csiData]);
 
-  const query = search.toLowerCase();
+  // Defer the query so keystrokes stay responsive: at ~6,500 codes the filter
+  // below is the expensive part, and useDeferredValue lets React paint the typed
+  // character first, then run the filter without blocking input.
+  const deferredSearch = useDeferredValue(search);
+  const query = deferredSearch.toLowerCase();
   const isSearching = query.length > 0;
 
   const displayDivisions = useMemo<DivisionView[]>(() => {
     const result: DivisionView[] = [];
+    if (!tree) return result;
 
-    for (const div of CSI_TREE) {
+    for (const div of tree) {
       const divMatches =
         !query || div.code.includes(query) || div.nameLower.includes(query);
 
@@ -314,7 +328,7 @@ export default function CsiCodePanel({
     }
 
     return result;
-  }, [query, isSearching]);
+  }, [query, isSearching, tree]);
 
   // Mutate the Bryntum task record directly. autoSync flushes the change to
   // `gantt.sync` on its next tick (last-write-wins, no version check).
@@ -366,7 +380,8 @@ export default function CsiCodePanel({
   }, [writeCsiCode, onCodeChange]);
 
   const hasCode = !!displayCode;
-  const subEntry = hasCode ? CSI_SUBDIVISION_MAP.get(displayCode!) : null;
+  const subEntry =
+    hasCode && csiData ? csiData.subdivisionMap.get(displayCode!) : null;
 
   // ─── Per-code spec document (project + CSI code → one Document) ───────
   const utils = api.useUtils();
@@ -397,7 +412,7 @@ export default function CsiCodePanel({
   const docRollup = useMemo(() => {
     const divisions = new Set<string>();
     const groupsWithChildDoc = new Set<string>();
-    for (const div of CSI_TREE) {
+    for (const div of tree ?? []) {
       let divHasDoc = false;
       for (const group of div.groups) {
         if (docCodes.has(group.code)) divHasDoc = true;
@@ -409,7 +424,7 @@ export default function CsiCodePanel({
       if (divHasDoc) divisions.add(div.code);
     }
     return { divisions, groupsWithChildDoc };
-  }, [docCodes]);
+  }, [docCodes, tree]);
 
   // Per-code in-flight add/remove, keyed by CSI code. Keying by code (not a
   // single panel-wide flag) is what stops the spinner/state from bleeding onto
@@ -562,7 +577,10 @@ export default function CsiCodePanel({
       </Box>
 
       {/* ── Current selection ── */}
-      {hasCode && subEntry && (
+      {/* Gated on hasCode (not subEntry): the spec-document controls must render
+          immediately; only the human-readable name lazy-fills once the CSI
+          dataset resolves. */}
+      {hasCode && (
         <Box
           sx={{
             mx: '16px',
@@ -602,7 +620,7 @@ export default function CsiCodePanel({
                   lineHeight: 1.3,
                 }}
               >
-                {subEntry.subdivision.name}
+                {subEntry?.subdivision.name ?? ''}
               </Typography>
               <Typography
                 sx={{
@@ -615,7 +633,7 @@ export default function CsiCodePanel({
                   mt: '1px',
                 }}
               >
-                {subEntry.division.name}
+                {subEntry?.division.name ?? ''}
               </Typography>
             </Box>
             <Box
@@ -1085,8 +1103,15 @@ export default function CsiCodePanel({
         })}
       </Box>
 
+      {/* ── Loading state (dataset still resolving) ── */}
+      {!csiData && (
+        <Box sx={{ px: 3, py: 4, display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress size={20} />
+        </Box>
+      )}
+
       {/* ── Empty state ── */}
-      {displayDivisions.length === 0 && (
+      {csiData && displayDivisions.length === 0 && (
         <Box
           sx={{
             px: 3,
