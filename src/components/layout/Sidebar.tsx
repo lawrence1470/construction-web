@@ -307,7 +307,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           overflow: 'hidden',
           flexShrink: 0,
         }}
-        aria-label="BuildTrack Pro"
+        aria-label="TEMERITY"
       >
         <LogoIcon size={20} />
         {!collapsed && (
@@ -324,7 +324,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 flex: 1,
               }}
             >
-              BuildTrack Pro
+              TEMERITY
             </Typography>
             <Tooltip
               title={`Collapse sidebar (${isMac ? '⌘' : 'Ctrl+'}B)`}

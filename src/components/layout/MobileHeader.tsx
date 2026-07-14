@@ -43,7 +43,7 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <LogoIcon size={16} />
           <Typography sx={{ color: 'text.primary', fontWeight: 500, fontSize: '0.875rem' }}>
-            BuildTrack
+            TEMERITY
           </Typography>
         </Box>
       </Box>

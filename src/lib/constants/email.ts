@@ -1,1 +1,1 @@
-export const EMAIL_FROM = "BuildTrack Pro <noreply@celn.app>";
+export const EMAIL_FROM = "TEMERITY <noreply@celn.app>";

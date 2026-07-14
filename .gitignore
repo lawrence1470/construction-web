@@ -64,5 +64,6 @@ generated/
 
 # visual designs / plans (local-only, never commit)
 visual-plans/
+.lavish/
 
 .env*

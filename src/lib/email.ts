@@ -53,7 +53,7 @@ export async function sendVerificationOTPEmail(
               <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
                 <div style="width: 32px; height: 32px; border: 2px solid white; border-radius: 50%;"></div>
               </div>
-              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">BuildTrack Pro</h2>
+              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">TEMERITY</h2>
             </div>
 
             <h1 style="color: #1f2937; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">${subject}</h1>
@@ -118,7 +118,7 @@ export async function sendPasswordResetEmail(
               <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
                 <div style="width: 32px; height: 32px; border: 2px solid white; border-radius: 50%;"></div>
               </div>
-              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">BuildTrack Pro</h2>
+              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">TEMERITY</h2>
             </div>
 
             <h1 style="color: #1f2937; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">Reset your password</h1>
@@ -181,7 +181,7 @@ export async function sendWaitlistConfirmationEmail(
     const { error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: email,
-      subject: "You're on the BuildTrack Pro waitlist!",
+      subject: "You're on the TEMERITY waitlist!",
       html: `
         <!DOCTYPE html>
         <html>
@@ -195,7 +195,7 @@ export async function sendWaitlistConfirmationEmail(
               <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
                 <div style="width: 32px; height: 32px; border: 2px solid white; border-radius: 50%;"></div>
               </div>
-              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">BuildTrack Pro</h2>
+              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">TEMERITY</h2>
             </div>
 
             <h1 style="color: #1f2937; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">You're on the waitlist!</h1>
@@ -211,7 +211,7 @@ export async function sendWaitlistConfirmationEmail(
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
 
             <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-              You're receiving this because you signed up for the BuildTrack Pro waitlist.
+              You're receiving this because you signed up for the TEMERITY waitlist.
             </p>
           </div>
         </body>
@@ -276,13 +276,13 @@ export async function sendInvitationEmail(
               <div style="width: 48px; height: 48px; background: #1f2937; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
                 <div style="width: 32px; height: 32px; border: 2px solid white; border-radius: 50%;"></div>
               </div>
-              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">BuildTrack Pro</h2>
+              <h2 style="color: #1f2937; margin: 16px 0 0 0; font-size: 18px; font-weight: 500;">TEMERITY</h2>
             </div>
 
             <h1 style="color: #1f2937; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">You're invited!</h1>
 
             <p style="color: #6b7280; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
-              <strong>${safeInviterName}</strong> has invited you to join ${safeProjectName ? `<strong>${safeProjectName}</strong> at ` : ""}<strong>${safeOrgName}</strong> on BuildTrack Pro.
+              <strong>${safeInviterName}</strong> has invited you to join ${safeProjectName ? `<strong>${safeProjectName}</strong> at ` : ""}<strong>${safeOrgName}</strong> on TEMERITY.
             </p>
 
             <div style="text-align: center; margin-bottom: 24px;">
@@ -292,7 +292,7 @@ export async function sendInvitationEmail(
             </div>
 
             <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0; text-align: center;">
-              This invitation will expire in 7 days. If you don't have a BuildTrack Pro account yet, you'll be able to create one.
+              This invitation will expire in 7 days. If you don't have a TEMERITY account yet, you'll be able to create one.
             </p>
 
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">

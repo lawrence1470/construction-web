@@ -10,7 +10,7 @@ import { SnackbarProvider } from "@/hooks/useSnackbar";
 
 
 export const metadata: Metadata = {
-  title: "BuildTrack Pro",
+  title: "TEMERITY",
   description: "Construction project management",
   icons: [
     { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },

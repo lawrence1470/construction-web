@@ -13,13 +13,13 @@ export class OnboardingPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.heading = page.getByText("Welcome to BuildTrack Pro");
+    this.heading = page.getByText("Welcome to TEMERITY");
     this.companyNameInput = page.getByPlaceholder("Enter your company name");
     this.companyTypeSelect = page.getByText("Select company type");
     this.continueButton = page.getByRole("button", { name: "Continue" });
     this.skipButton = page.getByRole("button", { name: "Skip for now" });
     this.backButton = page.getByRole("button", { name: "Back" });
-    this.launchButton = page.getByRole("button", { name: "Launch BuildTrack Pro" });
+    this.launchButton = page.getByRole("button", { name: "Launch TEMERITY" });
     this.successHeading = page.getByText("You're all set!");
   }
 

@@ -95,6 +95,7 @@ function makeCtx() {
     session: { user: { id: "user-1", email: "u@example.com" } },
     organization: { id: ORG_ID },
     membership: { role: "owner" as const },
+    projectMember: { role: "owner" as const },
   };
 }
 
