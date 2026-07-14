@@ -86,32 +86,22 @@ npm run dev          # http://localhost:3000
 - Better Auth trusts any localhost origin in development, and `APP_URL` in production (see `src/lib/auth.ts`).
 - In Conductor, `conductor.json` handles setup and run automatically. The `setup` script starts Docker, pulls env vars, overrides DB URLs, installs dependencies, and applies migrations. The `run` script re-applies migrations (`prisma migrate deploy`) and regenerates the Prisma client (`prisma generate`) on every workspace start before launching `next dev`, so a workspace can never start with a stale client or unapplied migrations.
 
-### Database workflow: always use `prisma migrate`, never `prisma db push`
+### Database workflow
 
-This project uses Prisma's **migration files** as the single source of truth for the schema. Always go through `prisma migrate dev` / `prisma migrate deploy` — never `prisma db push`.
+This project uses Prisma's **migration files** as the single source of truth for the schema. Always go through `prisma migrate dev` / `prisma migrate deploy` — **never** `prisma db push`. See `claudedocs/database-migrations.md` for the full workflow, drift recovery, raw-SQL patterns, and the rationale.
 
-**Why this matters**: `db push` only syncs the declarative `schema.prisma`. It silently skips anything that lives only in raw SQL files — custom Postgres functions, generated columns, GIN indexes, triggers, extensions. Several migrations in this project rely on raw SQL (e.g. `hybrid_document_search()` for hybrid search, `Document.searchVector` as a GENERATED column, GIN trigram indexes). A DB managed via `db push` will look fine in `prisma studio` but features that depend on those bits silently fail or return empty results — and you won't notice until you exercise the affected code path.
-
-**Workflow:**
+Quick reference:
 
 | Action | Command |
 |---|---|
 | Apply existing migrations to a fresh local DB | `npx prisma migrate deploy` |
 | Create a new migration after editing `schema.prisma` | `npx prisma migrate dev --name <descriptive_name>` |
-| Add raw SQL (function, generated column, custom index) | Create the migration with `--create-only`, then edit the generated `migration.sql` before running `npx prisma migrate dev` |
-| Inspect what's pending vs applied | `npx prisma migrate status` |
+| Add raw SQL (function, generated column, custom index) | `npx prisma migrate dev --name <name> --create-only`, edit the SQL, then `npx prisma migrate dev` |
+| Check if migrations and `_prisma_migrations` agree | `npx prisma migrate status` |
+| Check if the DB schema actually matches what migrations would produce | `npx prisma migrate diff --from-migrations prisma/migrations --to-url "$POSTGRES_PRISMA_URL" --shadow-database-url "postgresql://construction:construction@localhost:5432/construction_shadow" --script` |
 | Open the data browser | `npx prisma studio` |
 
-**If a workspace was set up via the old `db push` flow** and you suspect drift (missing functions, indexes, or generated columns), check with `npx prisma migrate status`. If it reports migrations as not applied even though the schema looks correct, the DB needs to be baselined: apply any missing raw-SQL bits manually, then mark each migration applied with `npx prisma migrate resolve --applied <name>` until status is clean. The simpler reset (if you have no important local data) is `docker volume rm construction-pgdata`, restart the container, then `npx prisma migrate deploy`.
-
-### Cross-workspace drift hazards (shared Postgres)
-
-Because every Conductor workspace shares one `construction-postgres` container, the database is mutable shared state while `prisma/schema.prisma`, `prisma/migrations/`, and `generated/prisma/` are per-workspace (each branch's view). A migration applied in workspace A is permanently visible to every other workspace, even ones whose branch doesn't have that migration file. Two rules avoid the worst failure modes:
-
-1. **Never delete a migration file after it has been applied to the shared DB.** If a schema change needs to be undone, write a new migration that reverses it. Deleting an applied migration leaves an orphan row in `_prisma_migrations` plus orphan column changes — and any other workspace that re-runs `prisma migrate dev` will then see drift it can't reconcile against files on disk.
-2. **When a workspace starts behaving strangely after a pull, run `npx prisma migrate status` first.** It compares files on disk to `_prisma_migrations` rows and surfaces drift before runtime errors do. Do this before assuming the dev server is broken.
-
-The `run` script in `conductor.json` already applies `prisma migrate deploy && prisma generate` on every workspace start, so the common path (`git pull` → restart) self-heals. These two rules cover the cases the `run` script can't.
+The `run` script in `conductor.json` applies `prisma migrate deploy && prisma generate` on every workspace start, so the common path (`git pull` → restart) self-heals. The full doc covers what self-heal can't — including the cross-workspace shared-DB hazards (every Conductor workspace shares the same `construction-postgres` container) and how to recover from drift caused by past `db push` runs.
 
 ## Available Scripts
 

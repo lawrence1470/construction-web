@@ -2,6 +2,7 @@
 
 ## Codebase Reference
 @claudedocs/environment-setup.md
+@claudedocs/database-migrations.md
 @claudedocs/auth-and-permissions.md
 @claudedocs/architecture-and-typescript.md
 @claudedocs/testing-guide.md
@@ -16,6 +17,7 @@
 ## Documentation Update Rules
 When making changes that affect these docs, update them in the same task:
 - New/modified env vars → update `claudedocs/environment-setup.md`
+- Schema changes, migrations, drift recovery, raw SQL patterns → update `claudedocs/database-migrations.md`
 - Auth, roles, permissions, or middleware changes → update `claudedocs/auth-and-permissions.md`
 - Architecture or TypeScript pattern changes → update `claudedocs/architecture-and-typescript.md`
 - New tests added or test patterns change → update `claudedocs/testing-guide.md`
