@@ -195,7 +195,7 @@ function ResetPasswordForm() {
                 variant="h6"
                 sx={{ color: 'text.primary', fontWeight: 500 }}
               >
-                BuildTrack Pro
+                TEMERITY
               </Typography>
             </Stack>
 

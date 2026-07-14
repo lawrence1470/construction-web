@@ -165,7 +165,7 @@ export default function VerifyEmailPage() {
                 variant="h6"
                 sx={{ color: 'text.primary', fontWeight: 500 }}
               >
-                BuildTrack Pro
+                TEMERITY
               </Typography>
             </Stack>
             <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 500, mb: 1.5 }}>

@@ -272,7 +272,7 @@ export default function SignUpPage() {
             variant="h6"
             sx={{ color: 'white', fontWeight: 600 }}
           >
-            BuildTrack Pro
+            TEMERITY
           </Typography>
         </Stack>
 
@@ -282,7 +282,7 @@ export default function SignUpPage() {
             variant="h5"
             sx={{ color: 'white', mb: 1, lineHeight: 1.4 }}
           >
-            &ldquo;BuildTrack Pro has transformed how we manage our construction
+            &ldquo;TEMERITY has transformed how we manage our construction
             projects — saving us weeks of coordination time.&rdquo;
           </Typography>
           <Typography
@@ -384,7 +384,7 @@ export default function SignUpPage() {
               <LogoIcon size={24} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              BuildTrack Pro
+              TEMERITY
             </Typography>
           </Stack>
 
@@ -399,8 +399,8 @@ export default function SignUpPage() {
             <Typography variant="body1" color="text.secondary">
               {step === 'register'
                 ? isInvitedFlow && invite
-                  ? `Join ${invite.organization.name} on BuildTrack Pro`
-                  : 'Get started with BuildTrack Pro'
+                  ? `Join ${invite.organization.name} on TEMERITY`
+                  : 'Get started with TEMERITY'
                 : `We sent a 6-digit code to ${email}`}
             </Typography>
           </Box>

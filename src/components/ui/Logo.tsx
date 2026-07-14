@@ -53,7 +53,7 @@ export const Logo: React.FC<LogoProps> = ({
       <LogoIcon size={size} />
       {showText && (
         <Typography sx={{ fontWeight: 600, fontSize }}>
-          BuildTrack Pro
+          TEMERITY
         </Typography>
       )}
     </Box>

@@ -61,7 +61,7 @@ export function OnboardingWizard() {
   const completeMutation = api.onboarding.createOrganization.useMutation({
     onSuccess: (data) => {
       setShowSuccess(true);
-      showSnackbar("Welcome to BuildTrack Pro!", "success");
+      showSnackbar("Welcome to TEMERITY!", "success");
       setTimeout(() => {
         router.push(`/${data.organization.slug}?welcome=1`);
       }, 1500);
@@ -214,7 +214,7 @@ export function OnboardingWizard() {
                   variant="h4"
                   sx={{ mb: 1, fontWeight: 700, color: 'text.primary' }}
                 >
-                  Welcome to BuildTrack Pro
+                  Welcome to TEMERITY
                 </Typography>
                 <Typography
                   component={motion.p}
@@ -325,7 +325,7 @@ export function OnboardingWizard() {
                         },
                       }}
                     >
-                      Launch BuildTrack Pro
+                      Launch TEMERITY
                     </Button>
                   )}
                 </Box>

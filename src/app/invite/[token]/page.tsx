@@ -201,7 +201,7 @@ export default function InvitePage() {
           You&apos;re invited!
         </Typography>
         <Typography color="text.secondary">
-          Join your team on BuildTrack Pro
+          Join your team on TEMERITY
         </Typography>
       </Box>
 

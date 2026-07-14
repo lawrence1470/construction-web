@@ -136,7 +136,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           color: 'text.primary',
           userSelect: 'none',
         }}
-        aria-label="BuildTrack Pro"
+        aria-label="TEMERITY"
       >
         <LogoIcon size={20} />
         <Typography
@@ -149,7 +149,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             flex: 1,
           }}
         >
-          BuildTrack Pro
+          TEMERITY
         </Typography>
         <IconButton
           onClick={onClose}

@@ -203,7 +203,16 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
   // Lock mode: chart is locked by default; admin-level users click the lock
   // toggle in the toolbar to enter edit mode.
   const { currentOrg } = useOrgFromUrl();
-  const canEditChart = canManageProjects(currentOrg?.role ?? '');
+  // Gantt editing is gated on the caller's effective PROJECT role, not their org
+  // role — a user promoted to admin on this project must be able to edit even if
+  // their org role is 'member'. projectMember.myRole resolves the authoritative
+  // project role (and auto-creates a row for org owners/admins). Fall back to the
+  // org role until it loads so org owners/admins don't flash a locked chart.
+  const { data: myProjectRole } = api.projectMember.myRole.useQuery(
+    { projectId: projectId ?? '' },
+    { enabled: !!projectId, retry: false },
+  );
+  const canEditChart = canManageProjects(myProjectRole?.role ?? currentOrg?.role ?? '');
   const [isEditMode, setIsEditMode] = useState(false);
   const editingUnlocked = canEditChart && isEditMode;
   // True while the Shift key is held (tracked only when editing is unlocked) so

@@ -70,7 +70,7 @@ function DashboardPreview() {
           <div style={{ width: 20, height: 20, borderRadius: 4, background: t.fg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>B</span>
           </div>
-          <span style={{ fontSize: 11, fontWeight: 600, color: t.fg }}>BuildTrack Pro</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: t.fg }}>TEMERITY</span>
           <CaretDown size={10} style={{ color: t.mutedFg }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: t.secondary, borderRadius: 6, padding: '4px 10px' }}>
@@ -220,7 +220,7 @@ function NexoraSection({ isLoggedIn }: { isLoggedIn: boolean }) {
             <rect x="18" y="3" width="3" height="10" rx="0.5" fill={t.fg} />
             <rect x="10" y="9" width="2.5" height="12" rx="0.5" fill={t.fg} />
           </svg>
-          <span style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', color: t.fg }}>BuildTrack Pro</span>
+          <span style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.02em', color: t.fg }}>TEMERITY</span>
         </div>
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="#features" style={{ fontSize: 14, color: t.mutedFg, textDecoration: 'none', transition: 'color 0.2s' }}>Features</a>
@@ -575,7 +575,7 @@ function Logo3DSection() {
           letterSpacing: '-0.02em',
         }}
       >
-        BuildTrack Pro
+        TEMERITY
       </p>
       <p style={{ fontSize: 14, color: t.mutedFg, margin: 0 }}>
         Built for builders.
@@ -617,7 +617,7 @@ function Footer() {
               <rect x="18" y="3" width="3" height="10" rx="0.5" fill="#111" />
               <rect x="10" y="9" width="2.5" height="12" rx="0.5" fill="#111" />
             </svg>
-            <span style={{ fontSize: 20, fontWeight: 700, color: '#111', letterSpacing: '-0.02em' }}>BuildTrack Pro</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#111', letterSpacing: '-0.02em' }}>TEMERITY</span>
           </a>
           <div style={{ display: 'flex', gap: 8 }}>
             {socialLinks.map((link) => (
@@ -649,7 +649,7 @@ function Footer() {
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 24 }}>
             {/* Copyright */}
             <div style={{ fontSize: 14, lineHeight: 1.6, color: '#858e8e', whiteSpace: 'nowrap' }}>
-              <div>&copy; {new Date().getFullYear()} BuildTrack Pro</div>
+              <div>&copy; {new Date().getFullYear()} TEMERITY</div>
               <div>All rights reserved</div>
             </div>
 

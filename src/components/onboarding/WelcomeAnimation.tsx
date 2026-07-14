@@ -167,7 +167,7 @@ export function WelcomeAnimation({ show }: { show: boolean }) {
             mb: 0.5,
           }}
         >
-          Welcome to BuildTrack Pro
+          Welcome to TEMERITY
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
           Your workspace is ready.

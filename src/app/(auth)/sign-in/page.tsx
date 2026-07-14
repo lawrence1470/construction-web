@@ -251,7 +251,7 @@ function SignInForm() {
             variant="h6"
             sx={{ color: 'white', fontWeight: 600 }}
           >
-            BuildTrack Pro
+            TEMERITY
           </Typography>
         </Stack>
 
@@ -363,7 +363,7 @@ function SignInForm() {
               <LogoIcon size={24} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              BuildTrack Pro
+              TEMERITY
             </Typography>
           </Stack>
 
@@ -377,7 +377,7 @@ function SignInForm() {
             </Typography>
             <Typography variant="body1" color="text.secondary">
               {step === 'login'
-                ? 'Sign in to your BuildTrack Pro account'
+                ? 'Sign in to your TEMERITY account'
                 : `We sent a 6-digit code to ${email}`}
             </Typography>
           </Box>

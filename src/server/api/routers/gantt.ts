@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, orgProcedure } from "@/server/api/trpc";
-import { canApproveDocuments } from "@/lib/permissions";
+import { createTRPCRouter, orgProcedure, projectProcedure } from "@/server/api/trpc";
+import { canApproveDocuments, canManageProjects } from "@/lib/permissions";
 import {
   ganttLoadInputSchema,
   ganttSyncInputSchema,
@@ -344,21 +344,21 @@ export const ganttRouter = createTRPCRouter({
   /**
    * Sync changes to Gantt data
    */
-  sync: orgProcedure
+  sync: projectProcedure
     .input(ganttSyncInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { projectId, tasks, dependencies, resources, assignments, timeRanges } = input;
 
-      // Verify project belongs to organization
-      const project = await ctx.db.project.findFirst({
-        where: {
-          id: projectId,
-          organizationId: ctx.organization.id,
-        },
-      });
-
-      if (!project) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Project not found or access denied" });
+      // Editing the schedule requires project-manage rights. projectProcedure
+      // resolves and validates the caller's effective PROJECT role (auto-creating
+      // a row for org owners/admins), so this both (a) blocks org members who
+      // aren't project admins/owners from persisting edits and (b) lets a user
+      // promoted to admin on the project edit even when their org role is member.
+      if (!canManageProjects(ctx.projectMember.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to edit this project's schedule",
+        });
       }
 
       // Last-write-wins: no version check, no isolation upgrade. Concurrent
