@@ -21,6 +21,7 @@ import { useGanttControls } from './hooks/useGanttControls';
 import { reconcileSyncPack } from './utils/reconcileSyncPack';
 import type { BryntumTaskRecord, BryntumGanttInstance, TaskClickEventPayload } from './types';
 import { IBeamLoader } from '@/components/ui/IBeamLoader';
+import { useGanttFocusStore } from '@/store/ganttFocusStore';
 
 const WRAPPER_STYLE: CSSProperties = {
   position: 'relative',
@@ -664,6 +665,54 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
     }
   }, [isVisible, getGanttInstance]);
 
+  // Deep-link focus: when the Tree view's "View in timeline" hands us a task id
+  // and this tab becomes visible, scroll that task into view and highlight it —
+  // "this is the one you wanted to see". Uses the proven-safe recipe (the "Scroll
+  // to item" context menu + handleAddTask use the same): scrollRowIntoView (also
+  // expands collapsed parents) → scrollToDate → selectedRecords, plus a brief
+  // pulse on the bar. requestId is in the deps so re-clicking the same task re-fires.
+  const focusTaskId = useGanttFocusStore((s) => s.focusTaskId);
+  const focusRequestId = useGanttFocusStore((s) => s.requestId);
+  const clearFocus = useGanttFocusStore((s) => s.clearFocus);
+  useEffect(() => {
+    if (!focusTaskId || isLoading || !isVisible) return;
+    let cancelled = false;
+    const attempt = (n: number) => {
+      if (cancelled) return;
+      const gantt = getGanttInstance();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+      const record = gantt?.taskStore?.getById?.(focusTaskId);
+      if (!gantt || !record) {
+        // Store may still be populating (fresh first mount) — retry a few times.
+        if (n < 5) setTimeout(() => attempt(n + 1), 200);
+        else clearFocus();
+        return;
+      }
+      void (async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        await gantt.scrollRowIntoView(record);
+        if (cancelled) return;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (record.startDate) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          gantt.scrollToDate(record.startDate, { block: 'center', animate: 300 });
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        gantt.selectedRecords = [record];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const el: HTMLElement | undefined = gantt.getElementFromTaskRecord?.(record);
+        if (el) {
+          el.classList.add('b-task-focus-pulse');
+          setTimeout(() => el.classList.remove('b-task-focus-pulse'), 2000);
+        }
+        clearFocus();
+      })();
+    };
+    attempt(0);
+    return () => { cancelled = true; };
+    // focusRequestId re-fires the effect when the same task is requested again.
+  }, [focusTaskId, focusRequestId, isLoading, isVisible, getGanttInstance, clearFocus]);
+
   // Bryntum React best practice: use useState (not useMemo) so the config object is
   // created exactly once and never recreated on re-render.  A new config reference
   // would make the React wrapper re-initialise the Bryntum instance (including
@@ -689,7 +738,10 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
       // Wait for the scheduling engine to finish normalizing dates, then give
       // the infinite-scroll time axis a beat to settle — a bare setTimeout(0)
       // races Bryntum's initial axis recentering and the scroll gets undone.
-      if (firstLoad) {
+      // Skip the default "land on first content" scroll when the user arrived
+      // via a "View in timeline" deep-link — the focus effect below will position
+      // the viewport on the requested task instead (avoids the two fighting).
+      if (firstLoad && !useGanttFocusStore.getState().focusTaskId) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
         const settled: unknown = getGanttInstance()?.project?.commitAsync?.();
         void Promise.resolve(settled)
@@ -981,6 +1033,18 @@ function BryntumGanttCore({ projectId, isVisible = true, ganttControls }: Bryntu
         .bryntum-gantt-container .b-gantt-task.b-task-selected {
           outline: 2.5px solid var(--accent-primary, rgba(43, 45, 66, 0.85)) !important;
           outline-offset: 2px;
+        }
+        /* Brief attention pulse when a task is opened via "View in timeline". */
+        .bryntum-gantt-container .b-gantt-task.b-task-focus-pulse {
+          animation: gantt-task-focus-pulse 0.9s ease-out 2;
+        }
+        @keyframes gantt-task-focus-pulse {
+          0%   { box-shadow: 0 0 0 0 var(--accent-warm, rgba(245, 158, 11, 0.7)); }
+          70%  { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .bryntum-gantt-container .b-gantt-task.b-task-focus-pulse { animation: none; }
         }
         /* Name cell inner wrapper — flex row with name + dots button */
         .gantt-name-cell-inner {

@@ -33,7 +33,9 @@ interface ProjectsListPaneProps {
   unmapped: ReadonlyArray<ProjectListItem>;
   selectedProjectId: string | null;
   activeProjectId: string | null;
+  hoveredProjectId: string | null;
   onSelect: (projectId: string | null) => void;
+  onHover: (projectId: string | null) => void;
 }
 
 export default function ProjectsListPane({
@@ -42,7 +44,9 @@ export default function ProjectsListPane({
   unmapped,
   selectedProjectId,
   activeProjectId,
+  hoveredProjectId,
   onSelect,
+  onHover,
 }: ProjectsListPaneProps) {
   const theme = useTheme();
   return (
@@ -73,7 +77,9 @@ export default function ProjectsListPane({
               orgSlug={orgSlug}
               isSelected={selectedProjectId === p.id}
               isActive={activeProjectId === p.id}
+              isHovered={hoveredProjectId === p.id}
               onSelect={onSelect}
+              onHover={onHover}
               theme={theme}
             />
           ))}
@@ -93,7 +99,9 @@ export default function ProjectsListPane({
               orgSlug={orgSlug}
               isSelected={selectedProjectId === p.id}
               isActive={activeProjectId === p.id}
+              isHovered={hoveredProjectId === p.id}
               onSelect={onSelect}
+              onHover={onHover}
               showAddAddress
               theme={theme}
             />
@@ -162,7 +170,9 @@ function ProjectRow({
   orgSlug,
   isSelected,
   isActive,
+  isHovered,
   onSelect,
+  onHover,
   showAddAddress,
   theme,
 }: {
@@ -170,7 +180,9 @@ function ProjectRow({
   orgSlug: string;
   isSelected: boolean;
   isActive: boolean;
+  isHovered: boolean;
   onSelect: (id: string | null) => void;
+  onHover: (id: string | null) => void;
   showAddAddress?: boolean;
   theme: Theme;
 }) {
@@ -204,6 +216,8 @@ function ProjectRow({
   return (
     <Box
       onClick={() => onSelect(isSelected ? null : project.id)}
+      onMouseEnter={() => onHover(project.id)}
+      onMouseLeave={() => onHover(null)}
       sx={{
         position: 'relative',
         display: 'flex',
@@ -213,7 +227,7 @@ function ProjectRow({
         py: 0.875,
         borderRadius: '8px',
         cursor: 'pointer',
-        bgcolor: isSelected ? 'action.selected' : 'transparent',
+        bgcolor: isSelected ? 'action.selected' : isHovered ? 'action.hover' : 'transparent',
         transition: 'background-color 0.15s',
         outline: 'none',
         '&:hover': { bgcolor: isSelected ? 'action.selected' : 'action.hover' },

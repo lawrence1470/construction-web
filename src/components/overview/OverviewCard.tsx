@@ -8,7 +8,7 @@ interface OverviewCardProps {
   children: React.ReactNode;
 }
 
-/** Shared shell for overview panels — soft elevation, hover lift, compact header. */
+/** Shared shell for overview panels — soft elevation, compact header. */
 export default function OverviewCard({ title, action, children }: OverviewCardProps) {
   return (
     <Paper
@@ -23,9 +23,6 @@ export default function OverviewCard({ title, action, children }: OverviewCardPr
         minWidth: 0,
         overflow: 'hidden',
         boxShadow: 'var(--shadow-card)',
-        transition: 'box-shadow 0.15s ease',
-        '&:hover': { boxShadow: 'var(--shadow-card-hover)' },
-        '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
       }}
     >
       <Box

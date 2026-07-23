@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Box, Typography, useTheme, alpha } from '@mui/material';
+import { Box, Skeleton, Typography, useTheme, alpha } from '@mui/material';
 import { CheckCircle, FileArrowUp, SealCheck, CaretRight } from '@phosphor-icons/react';
 import { api } from '@/trpc/react';
 import { useProjectContext } from '@/components/providers/ProjectProvider';
@@ -54,9 +54,10 @@ export default function NeedsAttentionCard({ orgSlug }: NeedsAttentionCardProps)
       }
     >
       {isLoading ? (
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', py: 2 }}>
-          Checking…
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, py: 0.5 }}>
+          <Skeleton variant="rounded" height={34} />
+          <Skeleton variant="rounded" height={34} />
+        </Box>
       ) : overdueSlots.length === 0 ? (
         <Box
           sx={{
@@ -81,9 +82,8 @@ export default function NeedsAttentionCard({ orgSlug }: NeedsAttentionCardProps)
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
           {visible.map((slot) => {
-            const daysLate = Math.max(
-              1,
-              Math.floor((Date.now() - new Date(slot.dueDate).getTime()) / DAY_MS),
+            const daysLate = Math.floor(
+              (Date.now() - new Date(slot.dueDate).getTime()) / DAY_MS,
             );
             const KindIcon = slot.kind === 'inspection' ? SealCheck : FileArrowUp;
             const label = slot.name?.trim()
@@ -165,7 +165,7 @@ export default function NeedsAttentionCard({ orgSlug }: NeedsAttentionCardProps)
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
-                    {daysLate}d late
+                    {daysLate < 1 ? 'due today' : `${daysLate}d late`}
                   </Typography>
                 </Box>
               </Link>

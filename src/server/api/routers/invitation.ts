@@ -357,6 +357,9 @@ export const invitationRouter = createTRPCRouter({
               data: existingMembers.map((member) => ({
                 type: "MEMBER_JOINED",
                 message: `${joinerName} joined the project`,
+                link: invitation.project
+                  ? `/${invitation.organization.slug}/projects/${invitation.project.slug}/team`
+                  : null,
                 userId: member.userId,
                 organizationId: invitation.organizationId,
                 actorId: ctx.session.user.id,

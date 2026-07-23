@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Box, Typography, alpha } from '@mui/material';
+import { Box, Tooltip, Typography, alpha } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
+import { FrameCorners as FrameCornersIcon } from '@phosphor-icons/react';
 import Map, {
   Marker,
   Popup,
@@ -20,7 +21,9 @@ interface ProjectsMapProps {
   projects: ReadonlyArray<ProjectListItem>;
   activeProjectId: string | null;
   selectedProjectId: string | null;
+  hoveredProjectId: string | null;
   onSelect: (id: string | null) => void;
+  onHover: (id: string | null) => void;
 }
 
 const US_VIEW = { longitude: -96.7, latitude: 38.0, zoom: 3 };
@@ -30,12 +33,16 @@ export default function ProjectsMap({
   projects,
   activeProjectId,
   selectedProjectId,
+  hoveredProjectId,
   onSelect,
+  onHover,
 }: ProjectsMapProps) {
   const theme = useTheme();
   const { mode } = useThemeMode();
   const mapRef = useRef<MapRef>(null);
-  const fitOnceRef = useRef(false);
+  const loadedRef = useRef(false);
+  const fitKeyRef = useRef<string>('');
+  const resizeObsRef = useRef<ResizeObserver | null>(null);
 
   const token = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -47,40 +54,67 @@ export default function ProjectsMap({
     [projects, selectedProjectId],
   );
 
-  // Fit bounds / flyTo when projects load (or change). Animated, runs once per data shape.
-  useEffect(() => {
+  const fitKey = useMemo(
+    () => projects.map((p) => p.id).sort().join('|'),
+    [projects],
+  );
+
+  // Frame all pins: flyTo for a single project, fitBounds for many.
+  const fitToProjects = useCallback(
+    (animate: boolean) => {
+      const map = mapRef.current?.getMap();
+      if (!map || projects.length === 0) return;
+
+      if (projects.length === 1) {
+        const p = projects[0]!;
+        map.flyTo({ center: [p.longitude!, p.latitude!], zoom: 11, duration: animate ? 800 : 0 });
+        return;
+      }
+
+      const lons = projects.map((p) => p.longitude!);
+      const lats = projects.map((p) => p.latitude!);
+      map.fitBounds(
+        [
+          [Math.min(...lons), Math.min(...lats)],
+          [Math.max(...lons), Math.max(...lats)],
+        ],
+        { padding: 64, duration: animate ? 800 : 0, maxZoom: 12 },
+      );
+    },
+    [projects],
+  );
+
+  // On first load: size the canvas correctly, wire a ResizeObserver so the map
+  // never locks to a stale container size, and frame the initial pins.
+  const handleLoad = useCallback(() => {
+    loadedRef.current = true;
     const map = mapRef.current?.getMap();
-    if (!map || projects.length === 0) {
-      fitOnceRef.current = false;
-      return;
-    }
-    if (fitOnceRef.current) return;
+    if (!map) return;
 
-    if (projects.length === 1) {
-      const p = projects[0]!;
-      map.flyTo({ center: [p.longitude!, p.latitude!], zoom: 11, duration: 800 });
-      fitOnceRef.current = true;
-      return;
-    }
+    map.resize();
 
-    const lons = projects.map((p) => p.longitude!);
-    const lats = projects.map((p) => p.latitude!);
-    const minLng = Math.min(...lons);
-    const maxLng = Math.max(...lons);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
+    const container = map.getContainer();
+    resizeObsRef.current?.disconnect();
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(container);
+    resizeObsRef.current = ro;
 
-    map.fitBounds(
-      [
-        [minLng, minLat],
-        [maxLng, maxLat],
-      ],
-      { padding: 64, duration: 800, maxZoom: 12 },
-    );
-    fitOnceRef.current = true;
-  }, [projects]);
+    fitKeyRef.current = fitKey;
+    fitToProjects(false);
+  }, [fitKey, fitToProjects]);
 
-  // Re-fly when selecting a project
+  useEffect(() => () => resizeObsRef.current?.disconnect(), []);
+
+  // Re-frame whenever the set of pins changes (project added/removed), not on
+  // unrelated re-renders (hover, selection). Keyed on the sorted id set.
+  useEffect(() => {
+    if (!loadedRef.current) return;
+    if (fitKey === fitKeyRef.current) return;
+    fitKeyRef.current = fitKey;
+    fitToProjects(true);
+  }, [fitKey, fitToProjects]);
+
+  // Re-fly when a project is selected.
   useEffect(() => {
     if (!selected) return;
     const map = mapRef.current?.getMap();
@@ -123,6 +157,7 @@ export default function ProjectsMap({
         initialViewState={US_VIEW}
         style={{ width: '100%', height: '100%' }}
         attributionControl={false}
+        onLoad={(e) => e.target.resize()}
       >
         <Box
           sx={{
@@ -164,13 +199,18 @@ export default function ProjectsMap({
       initialViewState={US_VIEW}
       style={{ width: '100%', height: '100%' }}
       attributionControl={false}
+      onLoad={handleLoad}
     >
+      {/* Themed popup chrome (background, tip, close button) for dark mode */}
+      <MapPopupTheme theme={theme} />
+
       <NavigationControl position="top-right" showCompass={false} />
 
       {projects.map((p) => {
         const statusColor = statusToColor(p.status, theme);
         const isActive = activeProjectId === p.id;
         const isSelected = selectedProjectId === p.id;
+        const isHovered = hoveredProjectId === p.id;
         return (
           <Marker
             key={p.id}
@@ -186,6 +226,9 @@ export default function ProjectsMap({
               statusColor={statusColor}
               isActive={isActive}
               isSelected={isSelected}
+              isHovered={isHovered}
+              onHoverStart={() => onHover(p.id)}
+              onHoverEnd={() => onHover(null)}
             />
           </Marker>
         );
@@ -204,6 +247,38 @@ export default function ProjectsMap({
           <ProjectPopupContent project={selected} orgSlug={orgSlug} />
         </Popup>
       )}
+
+      {/* Recenter / fit-to-all pins */}
+      <Tooltip title="Fit all projects" arrow placement="left">
+        <Box
+          component="button"
+          type="button"
+          aria-label="Fit all projects"
+          onClick={() => fitToProjects(true)}
+          sx={{
+            position: 'absolute',
+            bottom: 12,
+            right: 12,
+            zIndex: 1,
+            width: 32,
+            height: 32,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '8px',
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            cursor: 'pointer',
+            boxShadow: `0 2px 6px ${alpha('#000', 0.15)}`,
+            transition: 'background-color 0.15s',
+            '&:hover': { bgcolor: 'action.hover' },
+          }}
+        >
+          <FrameCornersIcon size={17} weight="bold" />
+        </Box>
+      </Tooltip>
     </Map>
   );
 }
@@ -214,24 +289,35 @@ function PinCircle({
   statusColor,
   isActive,
   isSelected,
+  isHovered,
+  onHoverStart,
+  onHoverEnd,
 }: {
   statusColor: string;
   isActive: boolean;
   isSelected: boolean;
+  isHovered: boolean;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
 }) {
+  const enlarged = isSelected || isHovered;
   return (
     <Box
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
       sx={{
-        width: isSelected ? 18 : 14,
-        height: isSelected ? 18 : 14,
+        width: enlarged ? 18 : 14,
+        height: enlarged ? 18 : 14,
         borderRadius: '999px',
         bgcolor: statusColor,
         border: '2px solid #fff',
         boxShadow: isActive
           ? `0 0 0 3px var(--accent-warm), 0 2px 6px ${alpha('#000', 0.3)}`
-          : `0 2px 4px ${alpha('#000', 0.25)}`,
+          : isHovered
+            ? `0 0 0 3px ${alpha('#fff', 0.9)}, 0 2px 6px ${alpha('#000', 0.35)}`
+            : `0 2px 4px ${alpha('#000', 0.25)}`,
         cursor: 'pointer',
-        transition: 'width 0.15s, height 0.15s',
+        transition: 'width 0.15s, height 0.15s, box-shadow 0.15s',
       }}
     />
   );
@@ -295,6 +381,40 @@ function ProjectPopupContent({
         Open project
       </Box>
     </Box>
+  );
+}
+
+// ── Popup theming ─────────────────────────────────────────────────────────────
+
+// Mapbox's popup chrome (background, tip, close button) is styled with its own
+// global CSS and ignores the app theme — jarring on the dark map style. Override
+// those pieces with theme tokens. Scoped globally but only rendered on the map.
+function MapPopupTheme({ theme }: { theme: Theme }) {
+  const paper = theme.palette.background.paper;
+  const text = theme.palette.text.secondary;
+  return (
+    <Box
+      component="style"
+      sx={{ display: 'none' }}
+      dangerouslySetInnerHTML={{
+        __html: `
+          .mapboxgl-popup-content {
+            background: ${paper};
+            color: ${theme.palette.text.primary};
+            border: 1px solid ${theme.palette.divider};
+            border-radius: 10px;
+            box-shadow: 0 8px 24px ${alpha('#000', 0.24)};
+            padding: 10px 12px;
+          }
+          .mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: ${paper}; }
+          .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: ${paper}; }
+          .mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: ${paper}; }
+          .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: ${paper}; }
+          .mapboxgl-popup-close-button { color: ${text}; font-size: 16px; padding: 0 6px; }
+          .mapboxgl-popup-close-button:hover { background: transparent; color: ${theme.palette.text.primary}; }
+        `,
+      }}
+    />
   );
 }
 

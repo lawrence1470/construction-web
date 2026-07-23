@@ -8,18 +8,19 @@ import { useOrgContext } from '@/components/providers/OrgProvider';
 import { useProjectContext } from '@/components/providers/ProjectProvider';
 import ApprovalToggle from '@/components/approvals/ApprovalToggle';
 import DeleteDocumentDialog from './DeleteDocumentDialog';
+import DocumentThumbnail from './DocumentThumbnail';
 import type { DocumentResult } from './types';
 
 interface DocumentCardGalleryProps {
   doc: DocumentResult;
   organizationId: string;
+  onPreview: () => void;
 }
 
-export default function DocumentCardGallery({ doc, organizationId }: DocumentCardGalleryProps) {
+export default function DocumentCardGallery({ doc, organizationId, onPreview }: DocumentCardGalleryProps) {
   const theme = useTheme();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const isImage = doc.mimeType.startsWith('image/');
   const isUnassigned = !doc.taskId;
   const { memberRole } = useOrgContext();
   const { projectId } = useProjectContext();
@@ -29,6 +30,15 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
     <Box
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onPreview}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPreview();
+        }
+      }}
       sx={{
         position: 'relative',
         borderRadius: '12px',
@@ -65,18 +75,17 @@ export default function DocumentCardGallery({ doc, organizationId }: DocumentCar
           overflow: 'hidden',
         }}
       >
-        {isImage ? (
-          <Box
-            component="img"
-            src={doc.blobUrl}
-            alt={doc.name}
-            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          doc.mimeType.includes('spreadsheet') || doc.mimeType.includes('excel') || doc.mimeType === 'text/csv'
-            ? <FileSpreadsheet size={32} style={{ color: theme.palette.text.disabled }} />
-            : <FileText size={32} style={{ color: theme.palette.text.disabled }} />
-        )}
+        <DocumentThumbnail
+          url={doc.blobUrl}
+          mimeType={doc.mimeType}
+          name={doc.name}
+          renderWidth={440}
+          fallback={
+            doc.mimeType.includes('spreadsheet') || doc.mimeType.includes('excel') || doc.mimeType === 'text/csv'
+              ? <FileSpreadsheet size={32} style={{ color: theme.palette.text.disabled }} />
+              : <FileText size={32} style={{ color: theme.palette.text.disabled }} />
+          }
+        />
       </Box>
 
       {/* Persistent caption bar */}

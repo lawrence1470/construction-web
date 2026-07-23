@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { useCountUp } from './hooks/useCountUp';
+import { Box, Typography, useTheme } from '@mui/material';
 
 interface ProgressRingProps {
   /** 0–100 */
@@ -10,27 +8,15 @@ interface ProgressRingProps {
   size?: number;
 }
 
-/**
- * Animated completion ring — the stroke sweeps in on mount via a CSS
- * transition on stroke-dashoffset; the center number counts up in step.
- */
+/** Static completion ring with the percent in the center. */
 export default function ProgressRing({ percent, size = 132 }: ProgressRingProps) {
   const theme = useTheme();
-  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const clamped = Math.max(0, Math.min(100, percent));
-  const displayed = useCountUp(clamped);
 
   const strokeWidth = 9;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-
-  // Start the sweep one frame after mount so the transition actually plays.
-  const [armed, setArmed] = useState(false);
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setArmed(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  const offset = circumference * (1 - (armed || reducedMotion ? clamped : 0) / 100);
+  const offset = circumference * (1 - clamped / 100);
 
   return (
     <Box sx={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -58,11 +44,6 @@ export default function ProgressRing({ percent, size = 132 }: ProgressRingProps)
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          style={{
-            transition: reducedMotion
-              ? 'none'
-              : 'stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1)',
-          }}
         />
       </Box>
       <Box
@@ -87,7 +68,7 @@ export default function ProgressRing({ percent, size = 132 }: ProgressRingProps)
             letterSpacing: '-0.02em',
           }}
         >
-          {displayed}%
+          {clamped}%
         </Typography>
         <Typography
           sx={{

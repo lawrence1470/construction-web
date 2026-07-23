@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, Fragment, useMemo, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   FolderSimple,
   FolderOpen,
@@ -18,17 +19,20 @@ import {
   Camera,
   ClipboardText,
   Hammer,
+  ChartBar,
   type Icon as PhosphorIcon,
 } from '@phosphor-icons/react';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
-import { Box, IconButton, InputBase, Skeleton, Typography } from '@mui/material';
+import { Box, IconButton, InputBase, Skeleton, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/trpc/react';
 import UploadDialog from '@/components/documents/UploadDialog';
 import { useDocumentUploader } from '@/components/documents/useDocumentUploader';
 import { folderData } from '@/lib/folders';
+import { getProjectNavHref } from '@/components/layout/navItems';
+import { useGanttFocusStore } from '@/store/ganttFocusStore';
 
 export { folderData };
 
@@ -420,6 +424,19 @@ function UnassignedUploader({
 
 export default function ProjectsTree({ selectedNodeId, onSelect, projectId, organizationId }: ProjectsTreeProps) {
   const theme = useTheme();
+  const router = useRouter();
+  const params = useParams<{ orgSlug?: string; projectSlug?: string }>();
+  const requestGanttFocus = useGanttFocusStore((s) => s.requestFocus);
+
+  // Jump to this task on the Gantt/Timeline: hand the id to the Gantt, then navigate.
+  const handleViewInTimeline = useCallback(
+    (taskId: string) => {
+      requestGanttFocus(taskId);
+      router.push(getProjectNavHref('gantt', params.orgSlug, params.projectSlug));
+    },
+    [requestGanttFocus, router, params.orgSlug, params.projectSlug]
+  );
+
   const { data: tasks = [], isLoading } = api.gantt.tasks.useQuery(
     { organizationId: organizationId!, projectId: projectId! },
     { enabled: !!projectId && !!organizationId, placeholderData: keepPreviousData }
@@ -885,6 +902,9 @@ export default function ProjectsTree({ selectedNodeId, onSelect, projectId, orga
               bgcolor: 'transparent',
             },
           },
+          // Reveal the "View in timeline" action only on row hover/focus.
+          '& .view-in-timeline-btn': { opacity: 0, transition: 'opacity 0.15s ease' },
+          '& .MuiTreeItem-content:hover .view-in-timeline-btn': { opacity: 1 },
         }}
       >
         {filteredGroups.map((group) => {
@@ -892,13 +912,20 @@ export default function ProjectsTree({ selectedNodeId, onSelect, projectId, orga
 
           return (
             <Fragment key={group.id}>
-              {/* Section label — non-interactive group name */}
+              {/* Section label — top-level task name. Non-interactive except for
+                  the hover-revealed "View in timeline" action (a top-level task
+                  has no clickable row of its own — only its folders render). */}
               <Box
                 sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 1,
                   px: 1.5,
                   pt: 1.5,
                   pb: 0.25,
                   userSelect: 'none',
+                  '&:hover .view-in-timeline-btn': { opacity: 1 },
                 }}
               >
                 <Typography
@@ -909,10 +936,29 @@ export default function ProjectsTree({ selectedNodeId, onSelect, projectId, orga
                     letterSpacing: '0.12em',
                     textTransform: 'uppercase',
                     lineHeight: 1,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {group.name}
                 </Typography>
+                <Tooltip title="View in timeline" arrow placement="top">
+                  <IconButton
+                    className="view-in-timeline-btn"
+                    size="small"
+                    aria-label="View in timeline"
+                    onClick={() => handleViewInTimeline(group.id)}
+                    sx={{
+                      p: 0.25,
+                      flexShrink: 0,
+                      color: 'text.secondary',
+                      '&:hover': { color: 'primary.main', bgcolor: 'action.hover' },
+                    }}
+                  >
+                    <ChartBar size={13} weight="bold" />
+                  </IconButton>
+                </Tooltip>
               </Box>
 
               {/* Groups with no child tasks show their folders directly */}
@@ -965,6 +1011,26 @@ export default function ProjectsTree({ selectedNodeId, onSelect, projectId, orga
                           <Box sx={{ fontWeight: 500, color: task.status.color }}>
                             {task.status.name}
                           </Box>
+                          <Tooltip title="View in timeline" arrow placement="top">
+                            <IconButton
+                              className="view-in-timeline-btn"
+                              size="small"
+                              aria-label="View in timeline"
+                              // Stop the row from expanding/selecting when the button is used.
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewInTimeline(task.id);
+                              }}
+                              sx={{
+                                p: 0.375,
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main', bgcolor: 'action.hover' },
+                              }}
+                            >
+                              <ChartBar size={14} weight="bold" />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </Box>
                     }
