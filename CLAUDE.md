@@ -1,17 +1,26 @@
 # Project Notes
 
-## Codebase Reference
-@claudedocs/environment-setup.md
-@claudedocs/auth-and-permissions.md
-@claudedocs/architecture-and-typescript.md
-@claudedocs/testing-guide.md
-@claudedocs/components-guide.md
-@claudedocs/embeddings.md
-@claudedocs/trpc-guide.md
-@claudedocs/vercel.md
-@claudedocs/csi-codes.md
-@claudedocs/design-systems.md
-@claudedocs/release-workflow.md
+## Codebase Reference — read on demand
+
+Detailed guides live in `claudedocs/`. They are **not** auto-loaded (that would
+bloat every session's context). Read the one relevant to your task first:
+
+| Read this before working on… | Guide |
+|---|---|
+| env vars, local DB, Prisma migrations, npm scripts | `claudedocs/environment-setup.md` |
+| auth, roles, permissions, middleware, procedure layers | `claudedocs/auth-and-permissions.md` |
+| architecture patterns, TypeScript conventions | `claudedocs/architecture-and-typescript.md` |
+| tRPC routers, procedures, data fetching | `claudedocs/trpc-guide.md` |
+| components, naming, styling, feature slices | `claudedocs/components-guide.md` |
+| marketing vs app design systems, light/dark theming | `claudedocs/design-systems.md` |
+| writing unit/E2E tests, fixtures, mocking | `claudedocs/testing-guide.md` |
+| document embeddings, hybrid search | `claudedocs/embeddings.md` |
+| CSI MasterFormat codes, the code picker | `claudedocs/csi-codes.md` |
+| Vercel config, env management, deployments | `claudedocs/vercel.md` |
+| preview → main promotion, DB branching | `claudedocs/release-workflow.md` |
+
+The **Documentation Update Rules** below map the same areas to which doc to
+*update* when you change them — that mapping doubles as "which doc to read."
 
 ## Documentation Update Rules
 When making changes that affect these docs, update them in the same task:
