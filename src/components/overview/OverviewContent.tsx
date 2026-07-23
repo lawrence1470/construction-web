@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { Box, Typography } from '@mui/material';
+import { Box, Skeleton, Typography } from '@mui/material';
 import {
   ListChecks,
   CheckCircle,
@@ -20,19 +20,10 @@ import ProgressRing from './ProgressRing';
 import NeedsAttentionCard from './NeedsAttentionCard';
 import SiteCard from './SiteCard';
 
-/** Week-over-week percent change; null when there is no meaningful baseline. */
-function weekDelta(series: number[]): number | null {
-  if (series.length < 2) return null;
-  const current = series[series.length - 1]!;
-  const previous = series[series.length - 2]!;
-  if (previous === 0) return null;
-  return Math.round(((current - previous) / previous) * 100);
-}
-
 export default function OverviewContent() {
   const params = useParams<{ orgSlug: string }>();
   const orgSlug = params.orgSlug;
-  const { projectId, projectName, projectSlug, projectImageUrl, projectLocation, organizationId } =
+  const { projectId, projectName, projectSlug, projectLocation, organizationId } =
     useProjectContext();
 
   const {
@@ -52,9 +43,6 @@ export default function OverviewContent() {
     { enabled: !!organizationId && !!projectId, retry: false },
   );
 
-  const scheduledSeries = overview?.weekly.map((w) => w.scheduled) ?? [];
-  const completedSeries = overview?.weekly.map((w) => w.completed) ?? [];
-
   const taskCount = overview?.taskCount ?? 0;
   const completedCount = overview?.completedCount ?? 0;
   const overdueCount = overview?.overdueCount ?? 0;
@@ -66,7 +54,7 @@ export default function OverviewContent() {
     return (
       <Box sx={{ p: 3, maxWidth: 1280, mx: 'auto' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <OverviewHero name={projectName} location={projectLocation} imageUrl={projectImageUrl} />
+          <OverviewHero name={projectName} location={projectLocation} />
           <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', py: 2 }}>
             Couldn&apos;t load project stats. Try refreshing the page.
           </Typography>
@@ -78,11 +66,10 @@ export default function OverviewContent() {
   return (
     <Box sx={{ p: 3, maxWidth: 1280, mx: 'auto' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        <OverviewHero name={projectName} location={projectLocation} imageUrl={projectImageUrl} />
+        <OverviewHero name={projectName} location={projectLocation} />
 
         {/* Stat cards */}
         <Box
-          className="stagger-in"
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
@@ -95,7 +82,6 @@ export default function OverviewContent() {
             icon={ListChecks}
             loading={overviewLoading}
             sublabel={overviewLoading ? '—' : `${overview?.inProgressCount ?? 0} in progress`}
-            spark={scheduledSeries}
           />
           <StatCard
             label="Completed"
@@ -104,9 +90,6 @@ export default function OverviewContent() {
             tone={overviewLoading ? 'default' : 'success'}
             loading={overviewLoading}
             sublabel={overviewLoading ? '—' : `${completedShare}% of all tasks`}
-            deltaPercent={overviewLoading ? null : weekDelta(completedSeries)}
-            positiveIsGood
-            spark={completedSeries}
           />
           <StatCard
             label="Behind schedule"
@@ -140,7 +123,6 @@ export default function OverviewContent() {
 
         {/* Panels */}
         <Box
-          className="stagger-in"
           sx={{
             display: 'grid',
             gridTemplateColumns: {
@@ -155,7 +137,11 @@ export default function OverviewContent() {
           {/* Progress + up next */}
           <OverviewCard title="Progress">
             <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'center', flex: 1, minWidth: 0 }}>
-              <ProgressRing percent={overview?.completionPercent ?? 0} />
+              {overviewLoading ? (
+                <Skeleton variant="circular" width={132} height={132} sx={{ flexShrink: 0 }} />
+              ) : (
+                <ProgressRing percent={overview?.completionPercent ?? 0} />
+              )}
               <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                 <Typography
                   sx={{

@@ -35,6 +35,7 @@ export default function ProjectsView({ orgSlug }: { orgSlug: string }) {
 
   const [addProjectOpen, setAddProjectOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null);
 
   const { data: projects = [], isLoading } = api.project.list.useQuery(
     { organizationId: activeOrganizationId ?? '' },
@@ -131,7 +132,9 @@ export default function ProjectsView({ orgSlug }: { orgSlug: string }) {
               unmapped={unmapped}
               selectedProjectId={selectedProjectId}
               activeProjectId={activeProject?.id ?? null}
+              hoveredProjectId={hoveredProjectId}
               onSelect={setSelectedProjectId}
+              onHover={setHoveredProjectId}
             />
           </Box>
           <Box
@@ -151,7 +154,9 @@ export default function ProjectsView({ orgSlug }: { orgSlug: string }) {
               projects={mapped}
               activeProjectId={activeProject?.id ?? null}
               selectedProjectId={selectedProjectId}
+              hoveredProjectId={hoveredProjectId}
               onSelect={setSelectedProjectId}
+              onHover={setHoveredProjectId}
             />
           </Box>
         </Box>

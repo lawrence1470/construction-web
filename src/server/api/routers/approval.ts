@@ -166,7 +166,13 @@ export const approvalRouter = createTRPCRouter({
           folderId: true,
           uploadedById: true,
           projectId: true,
-          project: { select: { organizationId: true } },
+          project: {
+            select: {
+              organizationId: true,
+              slug: true,
+              organization: { select: { slug: true } },
+            },
+          },
         },
       });
 
@@ -209,6 +215,7 @@ export const approvalRouter = createTRPCRouter({
               message: input.approved
                 ? `${approverName} approved your upload "${document.name}"`
                 : `${approverName} marked "${document.name}" as needing review`,
+              link: `/${document.project.organization.slug}/projects/${document.project.slug}/document-explorer`,
               userId: document.uploadedById,
               organizationId: ctx.organization.id,
               actorId: actor.id,

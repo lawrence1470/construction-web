@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, UserPlus, List as ListIcon } from '@phosphor-icons/react';
+import { useRouter } from 'next/navigation';
+import {
+  Bell,
+  UserPlus,
+  List as ListIcon,
+  CheckCircle,
+  ArrowCounterClockwise,
+  type Icon,
+} from '@phosphor-icons/react';
 import { Box, Typography, IconButton, Divider } from '@mui/material';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,8 +31,20 @@ interface HeaderProps {
   onMenuOpen?: () => void;
 }
 
+/** Icon + accent colors per notification type; falls back to the member icon. */
+const NOTIFICATION_TYPE_META: Record<string, { Icon: Icon; bg: string; fg: string }> = {
+  MEMBER_JOINED: { Icon: UserPlus, bg: 'primary.main', fg: 'primary.contrastText' },
+  DOCUMENT_APPROVED: { Icon: CheckCircle, bg: 'success.main', fg: 'success.contrastText' },
+  DOCUMENT_UNAPPROVED: { Icon: ArrowCounterClockwise, bg: 'warning.main', fg: 'warning.contrastText' },
+};
+
+function getNotificationMeta(type: string) {
+  return NOTIFICATION_TYPE_META[type] ?? NOTIFICATION_TYPE_META.MEMBER_JOINED!;
+}
+
 export default function Header({ onMenuOpen }: HeaderProps) {
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
+  const router = useRouter();
 
   useNavigationLoading();
   const { activeOrganizationId, orgSlug } = useOrgFromUrl();
@@ -143,11 +163,17 @@ export default function Header({ onMenuOpen }: HeaderProps) {
             </Box>
             <Divider />
             {notificationsData?.notifications && notificationsData.notifications.length > 0 ? (
-              notificationsData.notifications.map((n) => (
+              notificationsData.notifications.map((n) => {
+                const meta = getNotificationMeta(n.type);
+                return (
                 <DropdownMenuItem
                   key={n.id}
                   onClick={() => {
                     if (!n.read) markAsRead.mutate({ organizationId: activeOrganizationId, ids: [n.id] });
+                    if (n.link) {
+                      setNotifMenuOpen(false);
+                      router.push(n.link);
+                    }
                   }}
                 >
                   <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', width: '100%', p: 1.5 }}>
@@ -156,14 +182,15 @@ export default function Header({ onMenuOpen }: HeaderProps) {
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
-                        bgcolor: 'primary.main',
+                        bgcolor: meta.bg,
+                        color: meta.fg,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
                       }}
                     >
-                      <UserPlus size={16} weight="regular" color="white" />
+                      <meta.Icon size={16} weight="regular" />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontSize: 13, mb: 0.5 }}>{n.message}</Typography>
@@ -176,10 +203,17 @@ export default function Header({ onMenuOpen }: HeaderProps) {
                     )}
                   </Box>
                 </DropdownMenuItem>
-              ))
+                );
+              })
             ) : (
               <Box sx={{ p: 4, textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>No notifications</Typography>
+                <Bell size={22} weight="regular" style={{ opacity: 0.35, marginBottom: 8 }} />
+                <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+                  No notifications yet
+                </Typography>
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', opacity: 0.75, mt: 0.5 }}>
+                  Approvals and team activity show up here
+                </Typography>
               </Box>
             )}
           </DropdownMenuContent>
@@ -191,7 +225,6 @@ export default function Header({ onMenuOpen }: HeaderProps) {
             width: '1px',
             height: 22,
             bgcolor: 'divider',
-            mx: 0.5,
           }}
         />
 

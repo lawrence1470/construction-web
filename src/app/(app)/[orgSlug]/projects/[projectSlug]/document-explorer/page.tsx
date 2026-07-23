@@ -21,6 +21,7 @@ import type { LinkFilter, AdvancedFilters } from '@/components/documents/Documen
 import DocumentCardCompact from '@/components/documents/DocumentCardCompact';
 import DocumentCardDetail from '@/components/documents/DocumentCardDetail';
 import DocumentCardGallery from '@/components/documents/DocumentCardGallery';
+import DocumentPreview from '@/components/documents/DocumentPreview';
 import DocumentSkeletons from '@/components/documents/DocumentSkeletons';
 import DropOverlay from '@/components/documents/DropOverlay';
 import { useDocumentUploader } from '@/components/documents/useDocumentUploader';
@@ -55,6 +56,8 @@ export default function DocumentExplorerPage() {
   const [viewMode, setViewMode] = useState<'compact' | 'detail' | 'gallery'>('compact');
   const [sortBy, setSortBy] = useState<SortBy>('createdAt_desc');
   const [sortAnchorEl, setSortAnchorEl] = useState<HTMLElement | null>(null);
+  // Index into the current result set for the document preview modal (null = closed).
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   // Filter state
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -596,11 +599,11 @@ export default function DocumentExplorerPage() {
                   }}
                 >
                   {viewMode === 'gallery' ? (
-                    <DocumentCardGallery doc={doc} organizationId={organizationId} />
+                    <DocumentCardGallery doc={doc} organizationId={organizationId} onPreview={() => setPreviewIndex(i)} />
                   ) : viewMode === 'detail' ? (
-                    <DocumentCardDetail doc={doc} organizationId={organizationId} />
+                    <DocumentCardDetail doc={doc} organizationId={organizationId} onPreview={() => setPreviewIndex(i)} />
                   ) : (
-                    <DocumentCardCompact doc={doc} organizationId={organizationId} />
+                    <DocumentCardCompact doc={doc} organizationId={organizationId} onPreview={() => setPreviewIndex(i)} />
                   )}
                 </motion.div>
               ))}
@@ -608,6 +611,12 @@ export default function DocumentExplorerPage() {
           </AnimatePresence>
         </Box>
       )}
+
+      <DocumentPreview
+        docs={rawResults}
+        activeIndex={previewIndex}
+        onActiveIndexChange={setPreviewIndex}
+      />
     </Box>
   );
 }

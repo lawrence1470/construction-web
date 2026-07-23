@@ -98,6 +98,10 @@ All other routes require a session cookie. If no session cookie is present, the 
 
 Auth pages always pass through — they handle already-signed-in users internally (e.g., redirecting to the dashboard).
 
+### Static-asset exclusions (matcher)
+
+The `config.matcher` excludes self-hosted static-asset directories from the middleware entirely so they're served without an auth hop: `_next/static`, `_next/image`, `favicon.ico`, `favicon.svg`, `images`, `bryntum` (Gantt dark theme), and `pdf` (the pdf.js worker at `/pdf/pdf.worker.min.mjs`, used for PDF card thumbnails in the Document Explorer). These hold only public library/asset files — never user data (documents are served auth-gated via `/api/blob/[documentId]`). App routes remain protected by the `(app)` layout's DB checks regardless.
+
 ### Server-side gates (`src/app/(app)/layout.tsx`)
 
 The `(app)` layout performs DB-authoritative checks after the middleware passes:

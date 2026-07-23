@@ -23,11 +23,13 @@ import { useOrgContext } from '@/components/providers/OrgProvider';
 import { useProjectContext } from '@/components/providers/ProjectProvider';
 import ApprovalToggle from '@/components/approvals/ApprovalToggle';
 import DeleteDocumentDialog from './DeleteDocumentDialog';
+import DocumentThumbnail from './DocumentThumbnail';
 import type { DocumentResult } from './types';
 
 interface DocumentCardDetailProps {
   doc: DocumentResult;
   organizationId: string;
+  onPreview: () => void;
 }
 
 function getDetailFileIcon(mimeType: string, color: string) {
@@ -42,10 +44,9 @@ function getDetailFileIcon(mimeType: string, color: string) {
  * No preview. Pure metadata card with label:value pairs stacked vertically.
  * Everything visible, no hidden info. Explicit action buttons.
  */
-export default function DocumentCardDetail({ doc, organizationId }: DocumentCardDetailProps) {
+export default function DocumentCardDetail({ doc, organizationId, onPreview }: DocumentCardDetailProps) {
   const theme = useTheme();
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const isImage = doc.mimeType.startsWith('image/');
   const isUnassigned = !doc.taskId;
   const categoryLabel = getCategoryLabel(doc.folderId);
   const { memberRole } = useOrgContext();
@@ -61,6 +62,15 @@ export default function DocumentCardDetail({ doc, organizationId }: DocumentCard
 
   return (
     <Box
+      onClick={onPreview}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPreview();
+        }
+      }}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -70,6 +80,7 @@ export default function DocumentCardDetail({ doc, organizationId }: DocumentCard
         borderLeft: isUnassigned ? `3px solid ${theme.palette.warning.main}` : undefined,
         bgcolor: 'background.paper',
         overflow: 'hidden',
+        cursor: 'pointer',
         transition: 'border-color 0.2s, transform 0.18s ease, box-shadow 0.18s ease',
         willChange: 'transform',
         boxShadow: 'var(--shadow-card)',
@@ -110,16 +121,13 @@ export default function DocumentCardDetail({ doc, organizationId }: DocumentCard
             overflow: 'hidden',
           }}
         >
-          {isImage ? (
-            <Box
-              component="img"
-              src={doc.blobUrl}
-              alt={doc.name}
-              sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            getDetailFileIcon(doc.mimeType, theme.palette.text.secondary)
-          )}
+          <DocumentThumbnail
+            url={doc.blobUrl}
+            mimeType={doc.mimeType}
+            name={doc.name}
+            renderWidth={140}
+            fallback={getDetailFileIcon(doc.mimeType, theme.palette.text.secondary)}
+          />
         </Box>
         <Typography
           sx={{
@@ -209,14 +217,16 @@ export default function DocumentCardDetail({ doc, organizationId }: DocumentCard
             <Typography sx={{ fontSize: 11, fontWeight: 500, lineHeight: 1, color: 'text.secondary', width: 60, flexShrink: 0 }}>
               Status
             </Typography>
-            <ApprovalToggle
-              documentId={doc.id}
-              approvalStatus={doc.approvalStatus}
-              organizationId={organizationId}
-              projectId={projectId}
-              memberRole={memberRole}
-              size="sm"
-            />
+            <Box sx={{ display: 'inline-flex' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+              <ApprovalToggle
+                documentId={doc.id}
+                approvalStatus={doc.approvalStatus}
+                organizationId={organizationId}
+                projectId={projectId}
+                memberRole={memberRole}
+                size="sm"
+              />
+            </Box>
           </Box>
         )}
       </Box>

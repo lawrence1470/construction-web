@@ -67,7 +67,9 @@ export default function Breadcrumb() {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.125, minWidth: 0 }}>
       {projectSlug && (
-        <>
+        // Root "Projects" crumb is hidden on mobile — the project chip + page label
+        // are the useful parts, and horizontal space is scarce next to the menu button.
+        <Box sx={{ display: { xs: 'none', md: 'contents' } }}>
           <Box
             component={Link}
             href={`/${orgSlug}/projects`}
@@ -89,7 +91,7 @@ export default function Breadcrumb() {
             Projects
           </Box>
           <Separator />
-        </>
+        </Box>
       )}
 
       {/* Active project chip — outlined button that opens the project switcher */}

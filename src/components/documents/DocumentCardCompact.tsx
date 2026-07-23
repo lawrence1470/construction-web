@@ -18,11 +18,13 @@ import { useOrgContext } from '@/components/providers/OrgProvider';
 import { useProjectContext } from '@/components/providers/ProjectProvider';
 import ApprovalToggle from '@/components/approvals/ApprovalToggle';
 import DeleteDocumentDialog from './DeleteDocumentDialog';
+import DocumentThumbnail from './DocumentThumbnail';
 import type { DocumentResult } from './types';
 
 interface DocumentCardCompactProps {
   doc: DocumentResult;
   organizationId: string;
+  onPreview: () => void;
 }
 
 /**
@@ -30,11 +32,10 @@ interface DocumentCardCompactProps {
  * Small square thumbnail (48×48) on the left. Row 1: filename + category badge.
  * Row 2: date · size · uploader · task status. Actions on hover.
  */
-export default function DocumentCardCompact({ doc, organizationId }: DocumentCardCompactProps) {
+export default function DocumentCardCompact({ doc, organizationId, onPreview }: DocumentCardCompactProps) {
   const theme = useTheme();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const isImage = doc.mimeType.startsWith('image/');
   const isUnassigned = !doc.taskId;
   const categoryLabel = getCategoryLabel(doc.folderId);
   const { memberRole } = useOrgContext();
@@ -45,6 +46,15 @@ export default function DocumentCardCompact({ doc, organizationId }: DocumentCar
     <Box
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onPreview}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPreview();
+        }
+      }}
       sx={{
         display: 'flex',
         alignItems: 'center',
@@ -87,18 +97,17 @@ export default function DocumentCardCompact({ doc, organizationId }: DocumentCar
           flexShrink: 0,
         }}
       >
-        {isImage ? (
-          <Box
-            component="img"
-            src={doc.blobUrl}
-            alt={doc.name}
-            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          doc.mimeType.includes('spreadsheet') || doc.mimeType.includes('excel') || doc.mimeType === 'text/csv'
-            ? <FileXls size={20} color={theme.palette.text.disabled} />
-            : <FileText size={20} color={theme.palette.text.disabled} />
-        )}
+        <DocumentThumbnail
+          url={doc.blobUrl}
+          mimeType={doc.mimeType}
+          name={doc.name}
+          renderWidth={140}
+          fallback={
+            doc.mimeType.includes('spreadsheet') || doc.mimeType.includes('excel') || doc.mimeType === 'text/csv'
+              ? <FileXls size={20} color={theme.palette.text.disabled} />
+              : <FileText size={20} color={theme.palette.text.disabled} />
+          }
+        />
       </Box>
 
       {/* Text content */}
@@ -198,14 +207,16 @@ export default function DocumentCardCompact({ doc, organizationId }: DocumentCar
           {showApproval && (
             <>
               <Typography sx={{ fontSize: 11, lineHeight: 1, color: 'text.disabled' }}>·</Typography>
-              <ApprovalToggle
-                documentId={doc.id}
-                approvalStatus={doc.approvalStatus}
-                organizationId={organizationId}
-                projectId={projectId}
-                memberRole={memberRole}
-                size="sm"
-              />
+              <Box sx={{ display: 'inline-flex' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                <ApprovalToggle
+                  documentId={doc.id}
+                  approvalStatus={doc.approvalStatus}
+                  organizationId={organizationId}
+                  projectId={projectId}
+                  memberRole={memberRole}
+                  size="sm"
+                />
+              </Box>
             </>
           )}
         </Box>
